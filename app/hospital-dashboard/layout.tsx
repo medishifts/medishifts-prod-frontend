@@ -2,21 +2,57 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import EditProfileComponent from "./EditProfile/page";
 import Notifications from "./notifications/page";
-import { deleteCookie } from "cookies-next";
 import PocketBase from "pocketbase";
 import AddedJobs from "./addedJobs/page";
-import ProfilePage from "./profile/page";
 import toast from "react-hot-toast";
 import { SidebarDoctor } from "@/components/SidebarDoctor";
-import { resetProfile } from "../redux/features/profile-slice";
 import { AppDispatch, useAppSelector } from "../redux/store";
 import { useDispatch } from "react-redux";
 import HospitalProfilePage from "./profile/page";
 import HiredDoctors from "@/components/HiredDoctors";
 import { useRouter, useSearchParams } from "next/navigation";
+import { setNotifications as ReduxSetNotifications } from "@/app/redux/features/notifications-slice";
 
 type LayoutProps = {
   children: ReactNode;
+};
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  user: string;
+  time: string;
+  bgColor: string;
+  textColor: string;
+  read: boolean; // Add read status
+}
+
+type NotificationRecord = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
+};
+
+type NotificationItem = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
 };
 
 const pb = new PocketBase(process.env.NEXT_PUBLIC_BACKEND_API);
@@ -31,6 +67,7 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   const [is_document_uploaded, SetIs_document_uploaded] = useState(false);
 
   const fetchProfileData = async () => {
+    pb.autoCancellation(false);
     try {
       const record = await pb.collection("view_users").getOne(id);
       console.log(record.is_document_uploaded);
@@ -50,6 +87,7 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
     });
   });
   useEffect(() => {
+    pb.autoCancellation(false);
     fetchProfileData();
 
     const pageName = searchParams.get("page");
@@ -61,24 +99,53 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
     SetIs_document_uploaded(show);
   };
 
+  const getNoti = async () => {
+    try {
+      const records: any = await pb
+        .collection("notifications")
+        .getFullList<NotificationRecord>();
+
+      // Map PocketBase records to NotificationItem type
+      //@ts-ignore
+      const notifications: NotificationItem[] = records.map((record) => ({
+        id: record.id,
+        collectionId: record.collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        message: record.message,
+        read_receipt: record.read_receipt,
+        sender: record.sender,
+        title: record.title,
+        updated: record.updated,
+        url: record.url,
+        user: record.user,
+      }));
+
+      dispatch(ReduxSetNotifications(notifications));
+
+      // Update notification state and read count
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      dispatch(ReduxSetNotifications([]));
+    }
+  };
+
   useEffect(() => {
-    // Subscribe to the 'notifications' collection
-    console.log("Mounted");
     const unsubscribe = pb
       .collection("notifications")
-      .subscribe("*", function (e) {
+      .subscribe("*", async function (e) {
+        console.log("Notifications ", e.record);
         if (e.action === "create") {
-          toast.success("New notification Received", {
-            icon: "🔔",
-          });
-          console.log(e.record);
+          await getNoti();
+          // toast.success("New notification Received", {
+          //   icon: "🔔",
+          // });
           setNotifications(e.record);
         } else {
           console.log(`Action type: ${e.action}`);
         }
       });
 
-    // Cleanup function to unsubscribe when the component unmounts
     return () => {
       pb.collection("notifications").unsubscribe();
     };
@@ -86,47 +153,44 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleTabClick = async (item: string) => {
     setActiveTab(item);
-    if (item === "Logout") {
-      try {
-        await pb.authStore.clear();
-        deleteCookie("authToken");
-        deleteCookie("authData");
-        dispatch(resetProfile());
-        toast.success("You have been logged out successfully!");
-        window.location.href = "/";
-      } catch (error: any) {
-        toast.error(`Logout failed: ${error.message}`);
-      }
-    }
+    // if (item === "Logout") {
+    //   try {
+    //     await pb.authStore.clear();
+    //     deleteCookie("authToken");
+    //     deleteCookie("authData");
+    //     dispatch(resetProfile());
+    //     toast.success("You have been logged out successfully!");
+    //     window.location.href = "/";
+    //   } catch (error: any) {
+    //     toast.error(`Logout failed: ${error.message}`);
+    //   }
+    // }
   };
 
   const sidebarItems = is_document_uploaded
     ? [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "notification", icon: "bell", label: "..." },
-        { name: "Reviews", icon: "star", label: "Reviews" },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit Profile" },
+        // // { name: "notification", icon: "bell", label: "..." },
+        // { name: "Reviews", icon: "star", label: "Reviews" },
         { name: "jobs", icon: "briefcase", label: "Jobs" },
-        { name: "hired-doctor", icon: "user", label: "Hired Doctor" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        {
+          name: "hired-professionals",
+          icon: "user",
+          label: "Hirings",
+        },
       ]
     : [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "edit-profile", icon: "edit", label: "Edit Profile" },
-        { name: "notification", icon: "bell", label: "..." },
-        { name: "Reviews", icon: "star", label: "Reviews" },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit Profile" },
+        // // { name: "notification", icon: "bell", label: "..." },
+        // { name: "Reviews", icon: "star", label: "Reviews" },
         { name: "jobs", icon: "briefcase", label: "Jobs" },
-        { name: "hired-doctor", icon: "user", label: "Hired Doctor" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        {
+          name: "hired-professionals",
+          icon: "user",
+          label: "Hirings",
+        },
       ];
 
   const getIcon = (iconName: string) => {
@@ -246,7 +310,7 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M20 21v-2a4 4 0 00-3-3.87M4 4v2a4 4 0 003 3.87M4 4V3a1 1 0 011-1h2m10 0h2a1 1 0 011 1v1M12 14v2m0 4v2m0-12v-1m0-1a2 2 0 110-4 2 2 0 010 4z"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4.418 0-8 3.582-8 8v1h16v-1c0-4.418-3.582-8-8-8z"
             />
           </svg>
         );
@@ -273,8 +337,8 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="text-white min-h-screen flex flex-col md:flex-row p-4 bg-gray-50 dark:bg-black dark:text-white">
-      {/* Sidebar */}
+    <div className="text-white min-h-screen flex flex-col md:flex-row p-2 bg-gray-50 dark:bg-black dark:text-white">
+      {/* Sidebar Large Screens*/}
       <aside className="w-full max-w-[300px] md:w-1/4 p-5 hidden md:flex flex-col justify-between rounded-lg shadow-lg bg-blue-800 dark:bg-gray-800">
         <div>
           <div className="mb-8">
@@ -311,35 +375,33 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* Sidebar for mobile */}
-      <aside className="md:hidden w-full max-h-[80px] no-scrollbar overflow-x-auto overflow-y-hidden  p-1 rounded-lg shadow-lg bg-blue-800 dark:bg-gray-800 text-sm">
-        <ul className="flex space-x-3 ">
+      <aside className="md:hidden w-full max-h-[80px] no-scrollbar overflow-x-auto overflow-y-hidden p-1 rounded-lg shadow-lg bg-blue-800 dark:bg-gray-800 text-sm">
+        <ul className="flex w-full justify-between items-center ">
           {sidebarItems.map(({ name, icon, label }) => (
-            <SidebarDoctor
-              type={"hospital-dashboard"}
-              name={name}
-              icon={icon}
-              label={label}
-              activeTab={activeTab}
-              handleTabClick={() => {
-                handleTabClick(name);
-              }}
-              getIcon={getIcon}
-              title={
-                name === "notification"
-                  ? notifications
-                    ? "Notification 🚀"
-                    : "Notification"
-                  : label
-                  ? label
-                  : name
-              }
-            />
+            <li key={name} className="flex-1 flex justify-center">
+              <SidebarDoctor
+                type="hospital-dashboard"
+                name={name}
+                icon={icon}
+                label={label}
+                activeTab={activeTab}
+                handleTabClick={() => handleTabClick(name)}
+                getIcon={getIcon}
+                title={
+                  name === "notification"
+                    ? notifications
+                      ? "Notification 🚀"
+                      : "Notification"
+                    : label || name
+                }
+              />
+            </li>
           ))}
         </ul>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 p-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <div className="flex-1 p-2 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         {/* Button to change tab to "edit-profile" */}
 
         {activeTab === "edit-profile" && (
@@ -355,7 +417,7 @@ const HospitalDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
           />
         )}
         {activeTab === "jobs" && <AddedJobs />}
-        {activeTab === "hired-doctor" && <HiredDoctors />}
+        {activeTab === "hired-professionals" && <HiredDoctors />}
         {activeTab === "profile" && (
           <HospitalProfilePage handleTabClick={handleTabClick} />
         )}

@@ -4,7 +4,8 @@ import {useSelector,TypedUseSelectorHook} from 'react-redux'
 import {persistReducer} from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import profileReducer from './features/profile-slice'
-
+import notificationReducer from "./features/notifications-slice"
+import educationReducer from "./features/education-slice"
 const persistConfigure = {
     key: 'persist-store',
     version: 1,
@@ -13,7 +14,10 @@ const persistConfigure = {
 
 const reducer = combineReducers({
     authReducer,
-    profileReducer
+    profileReducer,
+    notificationReducer,
+    educationReducer,
+
 })
 
 const persistedReducer = persistReducer(persistConfigure,reducer);

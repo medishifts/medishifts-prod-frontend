@@ -12,6 +12,46 @@ import { SidebarDoctor } from "@/components/SidebarDoctor";
 import { useDispatch } from "react-redux";
 import { AppDispatch, useAppSelector } from "../redux/store";
 import { resetProfile } from "../redux/features/profile-slice";
+import { setNotifications as ReduxSetNotifications } from "@/app/redux/features/notifications-slice";
+
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  user: string;
+  time: string;
+  bgColor: string;
+  textColor: string;
+  read: boolean; // Add read status
+}
+
+type NotificationRecord = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
+};
+
+type NotificationItem = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
+};
 
 type LayoutProps = {
   children: ReactNode;
@@ -29,8 +69,9 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   const [is_document_uploaded, SetIs_document_uploaded] = useState(false);
   const fetchProfileData = async () => {
     try {
+      pb.autoCancellation(true);
       const record = await pb.collection("view_users").getOne(id);
-      console.log(record.is_document_uploaded);
+      // console.log(record.is_document_uploaded);
       SetIs_document_uploaded(record.is_document_uploaded);
     } catch (error) {
       console.error("Error fetching profile data:", error);
@@ -55,16 +96,52 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
       handleTabClick(pageName.trim());
     }
   }, [id]);
+
+  const getNoti = async () => {
+    try {
+      const records: any = await pb
+        .collection("notifications")
+        .getFullList<NotificationRecord>();
+
+      // Map PocketBase records to NotificationItem type
+      //@ts-ignore
+      const notifications: NotificationItem[] = records.map((record) => ({
+        id: record.id,
+        collectionId: record.collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        message: record.message,
+        read_receipt: record.read_receipt,
+        sender: record.sender,
+        title: record.title,
+        updated: record.updated,
+        url: record.url,
+        user: record.user,
+      }));
+
+      dispatch(ReduxSetNotifications(notifications));
+
+      // Update notification state and read count
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      dispatch(ReduxSetNotifications([]));
+    }
+  };
+
   useEffect(() => {
-    // Subscribe to the 'notifications' collection
-    console.log("Mounted");
     const unsubscribe = pb
       .collection("notifications")
-      .subscribe("*", function (e) {
-        toast.success("New notification Received", {
-          icon: "🔔",
-        });
-        setNotifications(e.record);
+      .subscribe("*", async function (e) {
+        console.log("Notifications ", e.record);
+        if (e.action === "create") {
+          await getNoti();
+          // toast.success("New notification Received", {
+          //   icon: "🔔",
+          // });
+          setNotifications(e.record);
+        } else {
+          console.log(`Action type: ${e.action}`);
+        }
       });
 
     return () => {
@@ -74,55 +151,42 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   const [activeTab, setActiveTab] = useState("profile");
 
   const handleShowEditProfile = (isShow: boolean): any => {
-    // alert("State changed");
     SetIs_document_uploaded(isShow);
   };
 
   const handleTabClick = async (item: string) => {
     setActiveTab(item);
-    if (item === "View Jobs") {
+    if (item === "Search Jobs") {
       window.location.href = "/findJobs";
-    } else if (item === "Logout") {
-      try {
-        pb.authStore.clear();
-        deleteCookie("authToken");
-        deleteCookie("authData");
-        dispatch(resetProfile());
-        toast.success("You have been logged out successfully!");
-        window.location.href = "/";
-      } catch (error: any) {
-        toast.error(`Logout failed: ${error.message}`);
-      }
     }
+    // } else if (item === "Logout") {
+    //   try {
+    //     pb.authStore.clear();
+    //     deleteCookie("authToken");
+    //     deleteCookie("authData");
+    //     dispatch(resetProfile());
+    //     toast.success("You have been logged out successfully!");
+    //     window.location.href = "/";
+    //   } catch (error: any) {
+    //     toast.error(`Logout failed: ${error.message}`);
+    //   }
+    // }
   };
 
   const sidebarItems = is_document_uploaded
     ? [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "notification", icon: "bell", label: "..." },
-        { name: "View Jobs", icon: "star", label: null },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit profile" },
+        { name: "Search Jobs", icon: "search", label: null },
         { name: "applied-jobs", icon: "plus", label: "Applied Jobs" },
-        { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        // { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
       ]
     : [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "edit-profile", icon: "edit", label: "Edit profile" },
-        { name: "notification", icon: "bell", label: "Notification" },
-        { name: "View Jobs", icon: "star", label: null },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit profile" },
+        { name: "Search Jobs", icon: "search", label: null },
         { name: "applied-jobs", icon: "plus", label: "Applied Jobs" },
-        { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        // { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
       ];
 
   const getIcon = (iconName: string) => {
@@ -226,6 +290,23 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
               strokeLinejoin="round"
               strokeWidth="2"
               d="M7 7V3a2 2 0 012-2h6a2 2 0 012 2v4M3 13h18M3 13a9 9 0 009 9 9 9 0 009-9M3 13a9 9 0 000-3h18a9 9 0 000 3z"
+            />
+          </svg>
+        );
+      case "search":
+        return (
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
           </svg>
         );

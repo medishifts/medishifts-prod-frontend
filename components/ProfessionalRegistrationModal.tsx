@@ -50,14 +50,19 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
       setError("Passwords do not match");
       return;
     }
-
+    // if (profession === "DOCTOR" && !name.startsWith("Dr.")) {
+    //   setName(`Dr. ${name}`);
+    // }
     const data = {
       email: email,
       emailVisibility: true,
       password: password,
       passwordConfirm: rePassword,
       role: profession,
-      name: name,
+      name:
+        profession === "DOCTOR" && !name.startsWith("Dr.")
+          ? `Dr. ${name}`
+          : name,
     };
 
     const registrationPromise = async () => {
@@ -79,6 +84,8 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
         loading: "Processing registration...",
         success: () => {
           onClose(); // Close modal on success
+          window.location.href = "/registration-success";
+
           return "Registration Successful! Check your email for verification";
         },
         error: (err) => {
@@ -171,7 +178,7 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name and last name only "
                   className="w-full p-2 rounded border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500"
                   required
                 />

@@ -6,6 +6,7 @@ export const consolidatedMedicalEducation = {
     { value: "BDS", label: "BDS" },
   ],
   postgraduateCourses: [
+    { value: "Not Applicable", label: "Not Applicable" },
     { value: "MD", label: "MD" },
     { value: "MS", label: "MS" },
     { value: "DNB", label: "DNB" },
@@ -17,6 +18,7 @@ export const consolidatedMedicalEducation = {
     { value: "MDS", label: "MDS" },
   ],
   specializations: [
+    { value: "Not Applicable", label: "Not Applicable" },
     { value: "Medicine", label: "Medicine" },
     {
       value: "Dermatology, Venerology & Leprosy/DVL",

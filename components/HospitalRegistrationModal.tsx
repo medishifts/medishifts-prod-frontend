@@ -77,6 +77,8 @@ const HospitalRegistrationModal: React.FC<ModalProps> = ({
         loading: "Processing registration...",
         success: () => {
           onClose(); // Close modal on success
+          window.location.href = "/registration-success";
+          
           return "Registration Successful! Check your email for verification";
         },
         error: (err) => {

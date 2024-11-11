@@ -1,6 +1,6 @@
+"use client";
 import React from "react";
 import Select from "react-select";
-
 
 const SelectDropDown = (props: any) => (
   <Select

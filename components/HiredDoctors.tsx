@@ -1,8 +1,44 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getCookie } from "cookies-next";
-
+import {
+  X,
+  Briefcase,
+  DollarSign,
+  Clock,
+  GraduationCap,
+  BookOpen,
+  Stethoscope,
+} from "lucide-react";
 import ViewHiredProfessionals from "./ViewHiredProfessional";
+import { EyeIcon } from "@/components/EyeIcon";
+import { Button } from "@nextui-org/button";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ScrollShadow,
+} from "@nextui-org/react";
+type Job = {
+  [x: string]: string | number | Date;
+  id: string;
+  position: string;
+  degree: string;
+  hire: string;
+  hire_from: string;
+  hire_to: string;
+  time_period: string;
+  salary: number;
+  job_description: string;
+  hospital: string;
+  shift_from: string;
+  shift_to: string;
+  hospital_name: string;
+  postGraduateCourses: string;
+  specializations: string;
+};
 
 const HiredDoctors = () => {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -12,6 +48,8 @@ const HiredDoctors = () => {
   const [isApplicantsModalOpen, setIsApplicantsModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [authdata, setAuthData] = useState<any>("");
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const data = getCookie("authData");
@@ -51,39 +89,14 @@ const HiredDoctors = () => {
       setLoading(false);
     }
   };
-  const hireDoctor = async (token: string, job: string, applicant: string) => {
-    let headersList = {
-      Accept: "/",
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
-    let bodyContent = JSON.stringify({
-      job: job,
-      applicant: job,
-      hired: true,
-    });
-
-    let response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}/api/jobs/hire`,
-      {
-        method: "POST",
-        body: bodyContent,
-        headers: headersList,
-      }
-    );
-
-    let data = await response.text();
-    console.log(data);
+  const openJobModal = (job: Job) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
   };
 
-  const handleJobModalOpen = () => {
-    setIsJobModalOpen(true);
-  };
-
-  const handleJobModalClose = () => {
-    setIsJobModalOpen(false);
-    fetchJobs(authdata?.token, authdata.record.id);
+  const closeJobModal = () => {
+    setSelectedJob(null);
+    setIsModalOpen(false);
   };
 
   const handleApplicantsModalOpen = (jobId: string) => {
@@ -100,8 +113,8 @@ const HiredDoctors = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="flex-1 bg-white dark:bg-gray-900 text-gray-800 dark:text-white">
-      <div className="max-w-7xl mx-auto">
+    <main className="flex-1 bg-white dark:bg-gray-900 text-gray-800 dark:text-white max-w-8xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="max-w-8xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">Hired Professionals</h2>
         </div>
@@ -174,16 +187,25 @@ const HiredDoctors = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-2xl font-bold">
-                        ₹{job.salary.toLocaleString()}/yr
+                        ₹{job.salary.toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex justify-between items-center space-x-4">
-                      <button
-                        onClick={() => handleApplicantsModalOpen(job.id)}
-                        className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors w-full"
+                    <div className="flex justify-between items-center">
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        onClick={() => openJobModal(job)}
+                        className="text-blue-600 hover:text-blue-700"
                       >
-                        Hired Professionals
-                      </button>
+                        <EyeIcon className="text-4xl" />
+                      </Button>
+                      <Button
+                        onClick={() => handleApplicantsModalOpen(job.id)}
+                        className="bg-gray-900 hover:bg-gray-800 text-white"
+                        size="sm"
+                      >
+                        View Hires
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -196,7 +218,209 @@ const HiredDoctors = () => {
           </div>
         )}
       </div>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeJobModal}
+        size="3xl"
+        scrollBehavior="inside"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-0",
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-2xl font-bold">{selectedJob?.position}</h2>
+                <p className="text-base text-gray-600 dark:text-gray-400 flex items-center">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  {selectedJob?.hospital_name || "Hospital name"}
+                </p>
+              </ModalHeader>
 
+              <ModalBody>
+                <ScrollShadow className="w-full">
+                  <div className="px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {/* Left Column */}
+                      <div className="space-y-4">
+                        {/* Hiring Details */}
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold mb-3">
+                            Hiring Details
+                          </h3>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Hiring Type:
+                              </p>
+                              <p className="font-medium">{selectedJob?.hire}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Duration:</p>
+                              <p className="font-medium">
+                                {selectedJob?.hire_from &&
+                                  new Date(
+                                    selectedJob.hire_from
+                                  ).toLocaleDateString()}{" "}
+                                -
+                                {selectedJob?.hire_to &&
+                                  new Date(
+                                    selectedJob.hire_to
+                                  ).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Time Period:
+                              </p>
+                              <p className="font-medium">
+                                {selectedJob?.time_period}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Compensation */}
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold mb-3">
+                            Compensation
+                          </h3>
+                          <div className="flex items-center text-xl font-bold">
+                            <DollarSign className="w-6 h-6 mr-2" />₹
+                            {selectedJob?.salary.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="space-y-4">
+                        {/* Qualifications */}
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold mb-3">
+                            Required Qualifications
+                          </h3>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Degree Required:
+                              </p>
+                              <p className="font-medium">
+                                {selectedJob?.degree}
+                              </p>
+                            </div>
+                            {selectedJob?.postGraduateCourses && (
+                              <div>
+                                <p className="text-sm text-gray-500">
+                                  Post Graduate Courses:
+                                </p>
+                                <p className="font-medium">
+                                  {selectedJob.postGraduateCourses}
+                                </p>
+                              </div>
+                            )}
+                            {selectedJob?.specializations && (
+                              <div>
+                                <p className="text-sm text-gray-500">
+                                  Specializations:
+                                </p>
+                                <p className="font-medium">
+                                  {selectedJob.specializations}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Schedule */}
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold mb-3">
+                            Work Schedule
+                          </h3>
+                          <div className="space-y-2">
+                            {selectedJob?.shift_from &&
+                              selectedJob?.shift_to && (
+                                <div>
+                                  <p className="text-sm text-gray-500">
+                                    Shift Hours:
+                                  </p>
+                                  <p className="font-medium">
+                                    {selectedJob.shift_from} -{" "}
+                                    {selectedJob.shift_to}
+                                  </p>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Job Description */}
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Job Description
+                      </h3>
+                      <p className="whitespace-pre-line">
+                        {selectedJob?.job_description}
+                      </p>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Quick Overview
+                        {/* Continuing from the Tags section in the modal */}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedJob?.degree && (
+                          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 flex items-center">
+                            <GraduationCap className="w-3 h-3 mr-1" />
+                            {selectedJob.degree}
+                          </span>
+                        )}
+                        {selectedJob?.postGraduateCourses && (
+                          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 flex items-center">
+                            <BookOpen className="w-3 h-3 mr-1" />
+                            PG: {selectedJob.postGraduateCourses}
+                          </span>
+                        )}
+                        {selectedJob?.specializations && (
+                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 flex items-center">
+                            <Stethoscope className="w-3 h-3 mr-1" />
+                            {selectedJob.specializations}
+                          </span>
+                        )}
+                        {selectedJob?.time_period && (
+                          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {selectedJob.time_period}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </ScrollShadow>
+              </ModalBody>
+
+              <ModalFooter>
+                <Button variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    onClose();
+                    selectedJob && handleApplicantsModalOpen(selectedJob.id);
+                  }}
+                >
+                  View Applicants
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
       {/* ViewApplicantsModal */}
       {isApplicantsModalOpen && selectedJobId && (
         <ViewHiredProfessionals

@@ -8,7 +8,37 @@ import Image from "next/image";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { setNotifications } from "@/app/redux/features/notifications-slice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/app/redux/store";
+import pb from "@/utils/pocketbase-connect";
+// type NotificationRecord = {
+//   id: string;
+//   collectionId: string;
+//   collectionName: string;
+//   created: string;
+//   message: string;
+//   read_receipt: string;
+//   sender: string;
+//   title: string;
+//   updated: string;
+//   url: string;
+//   user: string;
+// };
 
+// type NotificationItem = {
+//   id: string;
+//   collectionId: string;
+//   collectionName: string;
+//   created: string;
+//   message: string;
+//   read_receipt: string;
+//   sender: string;
+//   title: string;
+//   updated: string;
+//   url: string;
+//   user: string;
+// };
 const steps = [
   {
     title: "Add your databases",
@@ -34,6 +64,8 @@ const steps = [
 ];
 
 export default function Home() {
+  const dispatch = useDispatch<AppDispatch>();
+
   useEffect(() => {
     AOS.init({
       duration: 1000, // Duration of animations in milliseconds
@@ -122,6 +154,52 @@ export default function Home() {
       ),
     },
   ];
+  // const getNoti = async () => {
+  //   try {
+  //     const records: any = await pb
+  //       .collection("notifications")
+  //       .getFullList<NotificationRecord>({
+  //         filter: "read_receipt != 'READ'",
+  //       });
+
+  //     // Map PocketBase records to NotificationItem type
+  //     //@ts-ignore
+  //     const notifications: NotificationItem[] = records.map((record) => ({
+  //       id: record.id,
+  //       collectionId: record.collectionId,
+  //       collectionName: record.collectionName,
+  //       created: record.created,
+  //       message: record.message,
+  //       read_receipt: record.read_receipt,
+  //       sender: record.sender,
+  //       title: record.title,
+  //       updated: record.updated,
+  //       url: record.url,
+  //       user: record.user,
+  //     }));
+
+  //     dispatch(setNotifications(notifications));
+  //   } catch (error) {
+  //     console.error("Error fetching notifications:", error);
+  //     dispatch(setNotifications([]));
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getNoti();
+  // }, []);
+
+  // useEffect(() => {
+  //   const unsubscribe = pb
+  //     .collection("notifications")
+  //     .subscribe("*", async function (e) {
+  //       await getNoti();
+  //     });
+
+  //   return () => {
+  //     pb.collection("notifications").unsubscribe();
+  //   };
+  // }, []);
 
   return (
     <>

@@ -2,7 +2,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PocketBase from "pocketbase";
-import { deleteCookie } from "cookies-next"; // for managing cookies
+
 import toast from "react-hot-toast";
 import AppliedJobs from "@/components/AppliedJobs";
 import ProfileDoctor from "./Profile/page";
@@ -11,11 +11,50 @@ import Notifications from "./notifications/page";
 import { SidebarDoctor } from "@/components/SidebarDoctor";
 import { useDispatch } from "react-redux";
 import { AppDispatch, useAppSelector } from "../redux/store";
-import { resetProfile } from "../redux/features/profile-slice";
+import { setNotifications as ReduxSetNotifications } from "@/app/redux/features/notifications-slice";
 
 type LayoutProps = {
   children: ReactNode;
 };
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  user: string;
+  time: string;
+  bgColor: string;
+  textColor: string;
+  read: boolean; // Add read status
+}
+
+type NotificationRecord = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
+};
+
+type NotificationItem = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
+};
+
 const pb = new PocketBase(process.env.NEXT_PUBLIC_BACKEND_API);
 const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -55,16 +94,51 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
       handleTabClick(pageName.trim());
     }
   }, [id]);
+  const getNoti = async () => {
+    try {
+      const records: any = await pb
+        .collection("notifications")
+        .getFullList<NotificationRecord>();
+
+      // Map PocketBase records to NotificationItem type
+      //@ts-ignore
+      const notifications: NotificationItem[] = records.map((record) => ({
+        id: record.id,
+        collectionId: record.collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        message: record.message,
+        read_receipt: record.read_receipt,
+        sender: record.sender,
+        title: record.title,
+        updated: record.updated,
+        url: record.url,
+        user: record.user,
+      }));
+
+      dispatch(ReduxSetNotifications(notifications));
+
+      // Update notification state and read count
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      dispatch(ReduxSetNotifications([]));
+    }
+  };
+
   useEffect(() => {
-    // Subscribe to the 'notifications' collection
-    console.log("Mounted");
     const unsubscribe = pb
       .collection("notifications")
-      .subscribe("*", function (e) {
-        toast.success("New notification Received", {
-          icon: "🔔",
-        });
-        setNotifications(e.record);
+      .subscribe("*", async function (e) {
+        console.log("Notifications ", e.record);
+        if (e.action === "create") {
+          await getNoti();
+          // toast.success("New notification Received", {
+          //   icon: "🔔",
+          // });
+          setNotifications(e.record);
+        } else {
+          console.log(`Action type: ${e.action}`);
+        }
       });
 
     return () => {
@@ -80,49 +154,39 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleTabClick = async (item: string) => {
     setActiveTab(item);
-    if (item === "View Jobs") {
+    if (item === "Search Jobs") {
       window.location.href = "/findJobs";
-    } else if (item === "Logout") {
-      try {
-        pb.authStore.clear();
-        deleteCookie("authToken");
-        deleteCookie("authData");
-        dispatch(resetProfile());
-        toast.success("You have been logged out successfully!");
-        window.location.href = "/";
-      } catch (error: any) {
-        toast.error(`Logout failed: ${error.message}`);
-      }
     }
+    // } else if (item === "Logout") {
+    //   try {
+    //     pb.authStore.clear();
+    //     deleteCookie("authToken");
+    //     deleteCookie("authData");
+    //     dispatch(resetProfile());
+    //     toast.success("You have been logged out successfully!");
+    //     window.location.href = "/";
+    //   } catch (error: any) {
+    //     toast.error(`Logout failed: ${error.message}`);
+    //   }
+    // }
   };
 
   const sidebarItems = is_document_uploaded
     ? [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "notification", icon: "bell", label: "..." },
-        { name: "View Jobs", icon: "star", label: null },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit profile" },
+        { name: "Search Jobs", icon: "search", label: null },
         { name: "applied-jobs", icon: "plus", label: "Applied Jobs" },
-        { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        // { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
+        // { name: "Logout", icon: "logout", label: "Logout" },
       ]
     : [
         { name: "profile", icon: "edit", label: "Profile" },
-        { name: "edit-profile", icon: "edit", label: "Edit profile" },
-        { name: "notification", icon: "bell", label: "Notification" },
-        { name: "View Jobs", icon: "star", label: null },
-        {
-          name: "Premium Plan (History)",
-          icon: "archive",
-          label: "Premium Plans",
-        },
+        // { name: "edit-profile", icon: "edit", label: "Edit profile" },
+        { name: "Search Jobs", icon: "search", label: null },
         { name: "applied-jobs", icon: "plus", label: "Applied Jobs" },
-        { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
-        { name: "Logout", icon: "logout", label: "Logout" },
+        // { name: "Rate Hospitals", icon: "star", label: "Rate Hospitals" },
+        // { name: "Logout", icon: "logout", label: "Logout" },
       ];
 
   const getIcon = (iconName: string) => {
@@ -229,6 +293,23 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
             />
           </svg>
         );
+      case "search":
+        return (
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        );
       case "user":
         return (
           <svg
@@ -270,7 +351,7 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-white bg-gray-50  dark:bg-black dark:text-white">
-      <aside className="w-full max-w-[300px] md:w-1/4 p-5 hidden md:flex flex-col justify-between rounded-lg shadow-lg bg-blue-800 dark:bg-gray-800">
+      <aside className="w-full max-w-[300px] md:w-1/4 p-2 hidden md:flex flex-col justify-between rounded-lg shadow-lg bg-blue-800 dark:bg-gray-800">
         <div>
           <div className="mb-8">
             <h2 className="text-2xl font-semibold flex items-center space-x-2">

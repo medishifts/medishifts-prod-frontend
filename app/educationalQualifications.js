@@ -1,7 +1,13 @@
 export const educationalQualifications = {
   degrees: {
+    "Not Applicable": {
+      postgraduateCourses: {
+        "Not Applicable": ["Not Applicable"],
+      },
+    },
     MBBS: {
       postgraduateCourses: {
+        "Not Applicable": ["Not Applicable"],
         MD: [
           "Not Applicable",
           "Medicine",
@@ -163,6 +169,7 @@ export const educationalQualifications = {
     },
     BHMS: {
       postgraduateCourses: {
+        "Not Applicable": ["Not Applicable"],
         MD: [
           "Not Applicable",
           "Psychiatry",
@@ -192,6 +199,7 @@ export const educationalQualifications = {
     },
     BAMS: {
       postgraduateCourses: {
+        "Not Applicable": ["Not Applicable"],
         "MD/MS": [
           "Not Applicable",
           "Maulik Siddhanta",
@@ -245,6 +253,7 @@ export const educationalQualifications = {
     },
     BDS: {
       postgraduateCourses: {
+        "Not Applicable": ["Not Applicable"],
         Diploma: [
           "Not Applicable",
           " Aesthetic Dentistry",

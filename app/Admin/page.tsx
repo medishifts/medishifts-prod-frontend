@@ -7,6 +7,7 @@ import ViewAllProfessionals from "@/components/ViewAllProfessionals";
 import ViewAllHospitals from "@/components/ViewAllHospitals";
 import pb from "@/utils/pocketbase-connect";
 import RejectedUsers from "@/components/RejectedUsers";
+import Paymenthistory from "@/components/Paymenthistory";
 
 const Page = () => {
   // State to manage the selected view
@@ -17,6 +18,7 @@ const Page = () => {
     | "approveHospitals"
     | "approveProfessionals"
     | "rejectedUsers"
+    | "paymentHistory"
   >("default");
   const [isHydrated, setIsHydrated] = useState(false); // To track if hydration is complete
 
@@ -33,6 +35,7 @@ const Page = () => {
             | "approveHospitals"
             | "approveProfessionals"
             | "rejectedUsers"
+            | "paymentHistory"
         );
       } else {
         setView("default");
@@ -61,6 +64,8 @@ const Page = () => {
         return <ApproveProfessionals />;
       case "rejectedUsers":
         return <RejectedUsers />;
+      case "paymentHistory":
+        return <Paymenthistory />;
       case "default":
       default:
         return (
@@ -126,6 +131,12 @@ const Page = () => {
           onClick={() => setView("rejectedUsers")}
         >
           Rejected Users
+        </Button>
+        <Button
+          className="w-full sm:w-auto"
+          onClick={() => setView("paymentHistory")}
+        >
+          Payment history
         </Button>
         <Button
           className="w-full sm:w-auto"

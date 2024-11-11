@@ -1,16 +1,34 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
-import PocketBase from "pocketbase";
+import PocketBase, { RecordModel } from "pocketbase";
 import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import { useTheme } from "next-themes";
 import Loader from "@/components/Loader";
 import { EyeIcon } from "@/components/EyeIcon";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
+import {
+  X,
+  Briefcase,
+  DollarSign,
+  Clock,
+  GraduationCap,
+  BookOpen,
+  Stethoscope,
+  Calendar,
+} from "lucide-react";
+import { stateCityData } from "../stateCities";
 const pb = new PocketBase(process.env.NEXT_PUBLIC_BACKEND_API);
 
 type Job = {
-  [x: string]: string | number | Date;
   id: string;
   position: string;
   degree: string;
@@ -26,8 +44,44 @@ type Job = {
   hospital_name: string;
   postGraduateCourses: string;
   specializations: string;
+  created: string;
+  hospital_city: string;
+  hospital_state: string;
 };
 
+const mapRecordToJob = (record: RecordModel): Job => {
+  return {
+    id: record.id,
+    position: record.position || "",
+    degree: record.degree || "",
+    hire: record.hire || "",
+    hire_from: record.hire_from || "",
+    hire_to: record.hire_to || "",
+    time_period: record.time_period || "",
+    salary: record.salary || 0,
+    job_description: record.job_description || "",
+    hospital: record.hospital || "",
+    shift_from: record.shift_from || "",
+    shift_to: record.shift_to || "",
+    hospital_name: record.name || "",
+    postGraduateCourses: record.postGraduateCourses || "",
+    specializations: record.specializations || "",
+    created: record.created || "",
+    hospital_city: record.city || "",
+    hospital_state: record.state || "",
+  };
+};
+const DEGREE_OPTIONS = {
+  doctor: ["MBBS", "BHMS", "BAMS", "BDS"],
+  nurse: ["ANM", "GNM", "BSc Nursing", "BSc Nursing (Post Basic)"],
+};
+const getAllCities = () => {
+  const cities = new Set();
+  Object.values(stateCityData).forEach((cityArray) => {
+    cityArray.forEach((city) => cities.add(city));
+  });
+  return Array.from(cities).sort();
+};
 export default function JobsPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -37,6 +91,8 @@ export default function JobsPage() {
   const [filter, setFilter] = useState({
     hire: "all",
     salary: "default",
+    degree: "all",
+    city: "all", // Added city filter
   });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,19 +102,20 @@ export default function JobsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userRole, setUserRole] = useState("");
   const jobsPerPage = 9;
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cities = getAllCities();
 
   useEffect(() => {
     const authDataCookie = getCookie("authData");
 
     if (authDataCookie) {
-      console.log("Cookie Value:", authDataCookie);
+      // console.log("Cookie Value:", authDataCookie);
 
       try {
         const authData = JSON.parse(authDataCookie as string);
         setUserId(authData.record.id);
         setUserRole(authData.record.role);
-        console.log("User ID:", authData.record.id);
+        // console.log("User ID:", authData.record.id);
         console.log("User Role:", authData.record.role);
       } catch (error) {
         console.error("Error parsing cookie:", error);
@@ -67,54 +124,62 @@ export default function JobsPage() {
     } else {
       toast.error("Authentication data not found. Please log in.");
     }
-  }, []);
+  });
+  const getDegreeOptions = () => {
+    if (userRole === "NURSE") {
+      return DEGREE_OPTIONS.nurse;
+    }
+    return DEGREE_OPTIONS.doctor;
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
+      pb.autoCancellation(false);
       setLoading(true);
       try {
         let queryParams: Record<string, any> = {
           page: currentPage,
           perPage: jobsPerPage,
+          sort: "-created",
         };
+
+        // Initialize filter array
+        let filters = [];
+        filters.push(`hire~"${userRole}"`);
+        // Fiter for city
+        if (filter.city !== "all") {
+          filters.push(`city="${filter.city}"`);
+        }
 
         // Add search query
         if (searchTerm) {
-          queryParams.filter = `position~"${searchTerm}"`;
+          filters.push(`position~"${searchTerm}"`);
         }
+        if (filter.degree !== "all") {
+          filters.push(`degree="${filter.degree}"`);
+        }
+        // Add filter for user role (existing filter)
 
-        if (filter.hire !== "all") {
-          queryParams.filter = `${
-            queryParams.filter ? `${queryParams.filter} AND ` : ""
-          }hire="${filter.hire}"`;
+        if (filters.length > 0) {
+          queryParams.filter = filters.join("&&");
         }
 
         // Add sorting query
         if (filter.salary === "lowToHigh") {
-          queryParams.sort = "salary";
+          queryParams.sort = "+salary";
         } else if (filter.salary === "highToLow") {
           queryParams.sort = "-salary";
         }
 
-        const queryString = new URLSearchParams(queryParams).toString();
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API}/api/collections/jobs/records?${queryString}&filter=(hire~'${userRole}' )`,
+        const resultList = await pb
+          .collection("view_jobs")
+          .getList(currentPage, jobsPerPage, queryParams);
 
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
+        // Map RecordModel[] to Job[]
+        const mappedJobs: Job[] = resultList.items.map(mapRecordToJob);
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-
-        const resultList = await response.json();
-        setJobs(resultList.items);
-        setTotalPages(resultList.totalPages);
+        setJobs(mappedJobs);
+        setTotalPages(Math.ceil(resultList.totalItems / jobsPerPage));
         console.log(resultList);
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -126,15 +191,17 @@ export default function JobsPage() {
 
     fetchJobs();
   }, [currentPage, filter, searchTerm, userRole]);
+
   const openJobModal = (job: Job) => {
     setSelectedJob(job);
-    setIsModalOpen(true);
+    onOpen();
   };
 
   const closeJobModal = () => {
     setSelectedJob(null);
-    setIsModalOpen(false);
+    onClose();
   };
+
   const handleSearchKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -143,6 +210,7 @@ export default function JobsPage() {
       setCurrentPage(1);
     }
   };
+
   const applyForJob = async (jobId: string) => {
     const authDataCookie = getCookie("authData");
     if (!authDataCookie) {
@@ -152,37 +220,39 @@ export default function JobsPage() {
 
     const authData = JSON.parse(authDataCookie as string);
 
-    const headersList = {
-      Accept: "application/json",
-      "User-Agent": "Thunder Client (https://www.thunderclient.com)",
-      Authorization: `Bearer ${authData.token}`,
-      "Content-Type": "application/json",
-    };
+    const applyPromise = new Promise(async (resolve, reject) => {
+      try {
+        const data = {
+          job: jobId,
+          applicant: authData.record.id,
+        };
 
-    const bodyContent = JSON.stringify({
-      job: jobId,
-      applicant: authData.record.id,
+        await pb.collection("enrollments").create(data);
+        resolve("Successfully applied for the job!");
+      } catch (error: any) {
+        console.error("Error applying for the job:", error);
+        reject(error.message || "Failed to apply for the job.");
+      }
     });
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API}/api/collections/enrollments/records `,
-        {
-          method: "POST",
-          body: bodyContent,
-          headers: headersList,
-        }
-      );
-      const responseData = await response.json();
-      if (response.ok) {
-        toast.success("Successfully applied for the job!");
-      } else {
-        toast.error(responseData.message);
+    toast.promise(
+      applyPromise,
+      {
+        loading: "Applying for the job...",
+        success: (message) => `${message}`,
+        error: (message) => `${message}`,
+      },
+      {
+        success: {
+          duration: 5000,
+          icon: "✔️",
+        },
+        error: {
+          duration: 5000,
+          icon: "❌",
+        },
       }
-    } catch (error: any) {
-      console.error("Error applying for the job:", error);
-      toast.error(error.message || "Failed to apply for the job.");
-    }
+    );
   };
 
   const handlePageChange = (newPage: number) => {
@@ -190,6 +260,7 @@ export default function JobsPage() {
       setCurrentPage(newPage);
     }
   };
+
   const getRandomFadedColor = () => {
     const colors = [
       "rgba(255, 99, 132, 0.2)", // Light Red
@@ -213,6 +284,15 @@ export default function JobsPage() {
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
+  const maxFee = 300;
+  const calculateFee = (salary: any, maxFee: any) => {
+    const fee = salary * 0.1;
+    if (fee >= maxFee) {
+      return maxFee;
+    } else {
+      return fee;
+    }
+  };
 
   return (
     <div
@@ -220,7 +300,6 @@ export default function JobsPage() {
         isDark ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
       }`}
     >
-      {/* Hero Section */}
       <header
         className={`py-6 px-8 shadow-lg flex flex-col items-center text-center transition-colors duration-300 ${
           isDark ? "bg-gray-800" : "bg-white"
@@ -238,9 +317,11 @@ export default function JobsPage() {
             isDark ? "text-gray-300" : "text-gray-700"
           }`}
         >
-          🌟 <strong>Are you ready to make an impact?</strong> Join a team where
-          your skills and passion are valued. We offer exciting opportunities to
-          work on groundbreaking projects and collaborate with industry leaders.
+          🌟{" "}
+          <strong>
+            Discover jobs which suits your lifestyle . Have Freedom. Work when
+            you feel like it & get paid.
+          </strong>{" "}
         </p>
       </header>
 
@@ -282,20 +363,50 @@ export default function JobsPage() {
                   isDark ? "text-gray-300" : "text-gray-700"
                 }`}
               >
-                Hire Type
+                Degree
               </span>
               <select
-                value={filter.hire}
-                onChange={(e) => setFilter({ ...filter, hire: e.target.value })}
+                value={filter.degree}
+                onChange={(e) =>
+                  setFilter({ ...filter, degree: e.target.value })
+                }
                 className={`block w-full p-3 border rounded-md transition-colors duration-300 ${
                   isDark
                     ? "bg-gray-700 text-white border-gray-600"
                     : "bg-gray-100 text-gray-900 border-gray-300"
                 }`}
               >
-                <option value="all">All</option>
-                <option value="DOCTOR">Doctor</option>
-                <option value="NURSE">Nurse</option>
+                <option value="all">All Degrees</option>
+                {getDegreeOptions().map((degree) => (
+                  <option key={degree} value={degree}>
+                    {degree}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block mb-6">
+              <span
+                className={`text-lg mb-2 block transition-colors duration-300 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                City
+              </span>
+              <select
+                value={filter.city}
+                onChange={(e) => setFilter({ ...filter, city: e.target.value })}
+                className={`block w-full p-3 border rounded-md transition-colors duration-300 ${
+                  isDark
+                    ? "bg-gray-700 text-white border-gray-600"
+                    : "bg-gray-100 text-gray-900 border-gray-300"
+                }`}
+              >
+                <option value="all">All Cities</option>
+                {cities.map((city) => (
+                  <option key={city as string} value={city as string}>
+                    {String(city)}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -348,71 +459,36 @@ export default function JobsPage() {
                         isDark ? "bg-opacity-20" : "bg-opacity-50"
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex justify-end items-end mb-4">
                         <p
                           className={`text-sm ${
                             isDark ? "text-gray-300" : "text-gray-600"
                           }`}
                         >
+                          <strong>Posted on:</strong>{" "}
                           {new Date(job.created).toLocaleDateString()}
                         </p>
-                        <button
-                          className={`${
-                            isDark
-                              ? "text-gray-400 hover:text-gray-200"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                          </svg>
-                        </button>
                       </div>
 
-                      <div className="flex items-center mb-4">
-                        <div className="flex-grow">
-                          <h3
-                            className={`text-lg font-semibold ${
-                              isDark ? "text-gray-200" : "text-gray-700"
-                            }`}
-                          >
-                            {job.hire}
-                          </h3>
-                          <h2
-                            className={`text-xl font-bold ${
-                              isDark ? "text-white" : "text-gray-900"
-                            }`}
-                          >
-                            {job.position}
-                          </h2>
-                        </div>
-                        {job.hospital_name ? (
-                          <div
-                            className={`${
-                              isDark ? "bg-gray-700" : "bg-white"
-                            } bg-opacity-50 rounded-full p-2`}
-                          >
-                            {job.hospital_name}
-                          </div>
-                        ) : (
-                          "Hospital name"
-                        )}
-                      </div>
-                      <div className="flex flex-col mb-4">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          <strong>Job From:</strong>{" "}
-                          {new Date(job.hire_from).toLocaleDateString("en-GB")}
-                        </span>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          <strong>Job To:</strong>{" "}
-                          {new Date(job.hire_to).toLocaleDateString("en-GB")}
-                        </span>
-                      </div>
+                      <h3
+                        className={`text-lg font-semibold mb-2 ${
+                          isDark ? "text-gray-200" : "text-gray-700"
+                        }`}
+                      >
+                        Hospital - {job.hospital_name}
+                        <p>
+                          At- {job.hospital_city},{job.hospital_state}
+                        </p>
+                      </h3>
+
+                      <h2
+                        className={`text-xl font-bold mb-3 ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        Hiring For: {job.position}
+                      </h2>
+
                       <div className="flex flex-wrap gap-2 mb-4">
                         {job.degree && (
                           <span
@@ -422,11 +498,11 @@ export default function JobsPage() {
                                 : "bg-white text-gray-700"
                             } bg-opacity-50 text-xs font-semibold px-2.5 py-0.5 rounded`}
                           >
+                            <strong>Degree:</strong>
                             {job.degree}
                           </span>
                         )}
-
-                        {job.time_period && (
+                        {job.postGraduateCourses && (
                           <span
                             className={`${
                               isDark
@@ -434,26 +510,65 @@ export default function JobsPage() {
                                 : "bg-white text-gray-700"
                             } bg-opacity-50 text-xs font-semibold px-2.5 py-0.5 rounded`}
                           >
-                            {job.time_period}
+                            PG's: {job.postGraduateCourses}
                           </span>
                         )}
-
-                        {job.shift_from && job.shift_to ? (
-                          <span className="bg-white bg-opacity-50 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-xs font-semibold px-2.5 py-0.5 rounded">
-                            {job.shift_from} - {job.shift_to}
+                        {job.specializations && (
+                          <span
+                            className={`${
+                              isDark
+                                ? "bg-gray-700 text-gray-200"
+                                : "bg-white text-gray-700"
+                            } bg-opacity-50 text-xs font-semibold px-2.5 py-0.5 rounded`}
+                          >
+                            Specializations: {job.specializations}
                           </span>
-                        ) : (
-                          "Shift"
                         )}
                       </div>
 
-                      {job.job_description && (
+                      <h4
+                        className={`text-lg font-semibold mb-3 ${
+                          isDark ? "text-white" : "text-gray-800"
+                        }`}
+                      >
+                        Hiring Period
+                      </h4>
+                      <div className="flex items-center mb-2">
+                        <Calendar
+                          size={18}
+                          className={isDark ? "text-blue-400" : "text-blue-600"}
+                        />
                         <p
-                          className={`text-sm mb-4 line-clamp-2 ${
+                          className={`ml-2 text-sm ${
                             isDark ? "text-gray-300" : "text-gray-600"
                           }`}
                         >
-                          {job.job_description}
+                          <span className="font-medium">From:</span>{" "}
+                          {new Date(job.hire_from).toLocaleDateString()}
+                          <span className="mx-2">|</span>
+                          <span className="font-medium">
+                            {" "}
+                            {job.shift_from}{" "}
+                          </span>{" "}
+                          <br />
+                          <span className="font-medium">To:</span>{" "}
+                          {new Date(job.hire_to).toLocaleDateString()}
+                          <span className="mx-2">|</span>
+                          <span className="font-medium">
+                            {" "}
+                            {job.shift_to}{" "}
+                          </span>{" "}
+                        </p>
+                      </div>
+
+                      {job.time_period && (
+                        <p
+                          className={`text-sm mt-2 ${
+                            isDark ? "text-gray-400" : "text-gray-700"
+                          }`}
+                        >
+                          <span className="font-medium">Duration:</span>{" "}
+                          {job.time_period}
                         </p>
                       )}
 
@@ -464,7 +579,11 @@ export default function JobsPage() {
                               isDark ? "text-white" : "text-gray-900"
                             }`}
                           >
-                            ${job.salary.toLocaleString()}/yr
+                            <strong>
+                              ₹
+                              {Number(job.salary) -
+                                Math.round(calculateFee(job.salary, maxFee))}
+                            </strong>
                           </p>
                         </div>
                         <button
@@ -527,144 +646,212 @@ export default function JobsPage() {
           Next
         </button>
       </div>
-      {isModalOpen && selectedJob && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className={`max-w-2xl w-full m-4 rounded-3xl p-8 shadow-2xl transition-all duration-300 transform ${
-              isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-            } scale-100 hover:scale-105`}
-            style={{
-              transitionTimingFunction: "ease-in-out",
-            }}
-          >
-            {/* Header Section */}
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-3xl font-extrabold text-gradient bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                {selectedJob.position}
-              </h2>
-              <button
-                onClick={closeJobModal}
-                className="text-3xl font-bold text-gray-500 hover:text-red-500 transition-colors duration-300"
-              >
-                &times;
-              </button>
-            </div>
-            {selectedJob.hospital_name ? (
-              <div
-                className={`${
-                  isDark ? "bg-gray-700" : "bg-white"
-                } bg-opacity-50 rounded-full p-2`}
-              >
-                {selectedJob.hospital_name}
-              </div>
-            ) : (
-              "Hospital name"
-            )}
 
-            {/* Salary and Hire Type Section */}
-            <div className="mb-6">
-              <p
-                className={`text-lg font-medium ${
-                  isDark ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Hiring: <strong>{selectedJob.hire}</strong>
-              </p>
-              <p className="text-3xl font-bold mt-2 text-gradient bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent">
-                Salary: ${selectedJob.salary.toLocaleString()}/yr
-              </p>
-            </div>
+      {/* Job Modal */}
+      <Modal
+        isOpen={isOpen}
+        onClose={closeJobModal}
+        size="4xl"
+        scrollBehavior="inside"
+        className={isDark ? "dark" : ""}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-2xl font-bold">{selectedJob?.position}</h2>
+                <p className="text-base text-gray-600 dark:text-gray-400 flex items-center">
+                  <Briefcase size={18} className="mr-2" />
+                  {selectedJob?.hospital_name}
+                </p>
+              </ModalHeader>
+              <ModalBody>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    {/* Hiring Details */}
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Hiring Details
+                      </h3>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Hiring Type:
+                          </p>
+                          <p className="font-medium">{selectedJob?.hire}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Duration:
+                          </p>
+                          <p className="font-medium">
+                            {selectedJob &&
+                              `${new Date(
+                                selectedJob.hire_from
+                              ).toLocaleDateString()} - ${new Date(
+                                selectedJob.hire_to
+                              ).toLocaleDateString()}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Time Period:
+                          </p>
+                          <p className="font-medium">
+                            {selectedJob?.time_period}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            {/* Tags Section */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {selectedJob.degree && (
-                <span
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-200"
-                      : "bg-gray-200 text-gray-700"
-                  } text-sm font-semibold px-4 py-1 rounded-full shadow-lg`}
+                    {/* Compensation */}
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                      <span>
+                        The total salary for this job is{" "}
+                        <strong>₹{selectedJob?.salary}. </strong>
+                        After deducting the platform fee of{" "}
+                        <strong>
+                          {" "}
+                          ₹
+                          {selectedJob &&
+                            Math.round(
+                              calculateFee(selectedJob.salary, maxFee)
+                            )}
+                        </strong>
+                        , which is covered by the hospital, your net
+                        compensation will be provided.
+                      </span>
+
+                      <h3 className="text-lg font-semibold mb-3">
+                        Compensation
+                      </h3>
+                      <div className="text-2xl font-bold flex items-center">
+                        <DollarSign size={24} className="mr-2" />₹
+                        {selectedJob &&
+                          Number(selectedJob.salary) -
+                            Math.round(
+                              calculateFee(selectedJob.salary, maxFee)
+                            )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    {/* Qualifications */}
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Required Qualifications
+                      </h3>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Degree Required:
+                          </p>
+                          <p className="font-medium">{selectedJob?.degree}</p>
+                        </div>
+                        {selectedJob?.postGraduateCourses && (
+                          <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Post Graduate Courses:
+                            </p>
+                            <p className="font-medium">
+                              {selectedJob.postGraduateCourses}
+                            </p>
+                          </div>
+                        )}
+                        {selectedJob?.specializations && (
+                          <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Specializations:
+                            </p>
+                            <p className="font-medium">
+                              {selectedJob.specializations}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Schedule */}
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Work Schedule
+                      </h3>
+                      {selectedJob?.shift_from && selectedJob?.shift_to && (
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Shift Hours:
+                          </p>
+                          <p className="font-medium">
+                            {selectedJob.shift_from} - {selectedJob.shift_to}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Job Description - Full Width */}
+                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mt-4">
+                  <h3 className="text-lg font-semibold mb-3">
+                    Job Description
+                  </h3>
+                  <p className="whitespace-pre-line">
+                    {selectedJob?.job_description}
+                  </p>
+                </div>
+
+                {/* Tags Section */}
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-3">Quick Overview</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedJob?.degree && (
+                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 flex items-center">
+                        <GraduationCap size={12} className="mr-1" />
+                        {selectedJob.degree}
+                      </span>
+                    )}
+                    {selectedJob?.postGraduateCourses && (
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 flex items-center">
+                        <BookOpen size={12} className="mr-1" />
+                        PG: {selectedJob.postGraduateCourses}
+                      </span>
+                    )}
+                    {selectedJob?.specializations && (
+                      <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300 flex items-center">
+                        <Stethoscope size={12} className="mr-1" />
+                        {selectedJob.specializations}
+                      </span>
+                    )}
+                    {selectedJob?.time_period && (
+                      <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300 flex items-center">
+                        <Clock size={12} className="mr-1" />
+                        {selectedJob.time_period}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    selectedJob && applyForJob(selectedJob.id);
+                    onClose();
+                  }}
                 >
-                  Required Degree: {selectedJob.degree}
-                </span>
-              )}
-              {selectedJob.postGraduateCourses && (
-                <span
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-200"
-                      : "bg-gray-200 text-gray-700"
-                  } text-sm font-semibold px-4 py-1 rounded-full shadow-lg`}
-                >
-                  Required PG's: {selectedJob.postGraduateCourses}
-                </span>
-              )}
-              {selectedJob.specializations && (
-                <span
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-200"
-                      : "bg-gray-200 text-gray-700"
-                  } text-sm font-semibold px-4 py-1 rounded-full shadow-lg`}
-                >
-                  Required PG's: {selectedJob.specializations}
-                </span>
-              )}
-              {selectedJob.time_period && (
-                <span
-                  className={`${
-                    isDark
-                      ? "bg-gray-700 text-gray-200"
-                      : "bg-gray-200 text-gray-700"
-                  } text-sm font-semibold px-4 py-1 rounded-full shadow-lg`}
-                >
-                  Job time Period: {selectedJob.time_period}
-                </span>
-              )}
-
-              {selectedJob.shift_from && selectedJob.shift_to ? (
-                <span className="bg-white bg-opacity-50 text-gray-700 dark:bg-gray-700 dark:text-gray-300 text-xs font-semibold px-2.5 py-0.5 rounded  shadow-lg">
-                  Shift Timing : {selectedJob.shift_from} -{" "}
-                  {selectedJob.shift_to}
-                </span>
-              ) : (
-                "Shift"
-              )}
-            </div>
-
-            {/* Job Description Section */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-2 text-gradient bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                Job Description
-              </h3>
-              <p
-                className={`text-lg leading-relaxed ${
-                  isDark ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                {selectedJob.job_description}
-              </p>
-            </div>
-
-            {/* Apply Now Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  applyForJob(selectedJob.id);
-                  closeJobModal();
-                }}
-                className={`${
-                  isDark
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-gradient-to-r from-purple-600 to-blue-500 hover:from-blue-500 hover:to-purple-600 text-white"
-                } text-lg font-semibold px-6 py-3 rounded-full shadow-xl transition-transform transform hover:scale-105 duration-300`}
-              >
-                Apply Now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                  Apply Now
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

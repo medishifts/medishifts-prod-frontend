@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 import pb from "@/utils/pocketbase-connect";
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@nextui-org/react";
+import { Chip } from "@nextui-org/react";
 import { RecordModel } from "pocketbase";
 
 interface UserQualification extends RecordModel {
@@ -43,43 +36,45 @@ const UserQualifications: React.FC<UserQualificationsProps> = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div className="mt-8">
-      <Table
-        aria-label="User educational qualifications"
-        className="border-collapse border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
-      >
-        <TableHeader>
-          <TableColumn className="text-xs md:text-sm font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-800 py-2 px-4 rounded-tl-lg">
-            DEGREE
-          </TableColumn>
-          <TableColumn className="text-xs md:text-sm font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-800 py-2 px-4">
-            POST GRADUATION
-          </TableColumn>
-          <TableColumn className="text-xs md:text-sm font-bold text-gray-800 dark:text-white bg-gray-100 dark:bg-gray-800 py-2 px-4 rounded-tr-lg">
-            SPECIALIZATION
-          </TableColumn>
-        </TableHeader>
-        <TableBody>
-          {qualifications.map((qual, index) => (
-            <TableRow
-              key={qual.id}
-              className={`${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-              } dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-300`}
-            >
-              <TableCell className="py-3 px-4 text-sm md:text-base text-gray-700 dark:text-gray-300">
-                {qual.degree}
-              </TableCell>
-              <TableCell className="py-3 px-4 text-sm md:text-base text-gray-700 dark:text-gray-300">
+    <div className="mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+        Qualifications
+      </h2>
+      {qualifications.map((qual) => (
+        <div
+          key={qual.id}
+          className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-md"
+        >
+          <div className="mb-2">
+            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2">
+              Degree:
+            </span>
+            <Chip color="primary" variant="flat">
+              {qual.degree}
+            </Chip>
+          </div>
+          {qual.pg && (
+            <div className="mb-2">
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2">
+                Post Graduation:
+              </span>
+              <Chip color="secondary" variant="flat">
                 {qual.pg}
-              </TableCell>
-              <TableCell className="py-3 px-4 text-sm md:text-base text-gray-700 dark:text-gray-300">
+              </Chip>
+            </div>
+          )}
+          {qual.specialization && (
+            <div>
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2">
+                Specialization:
+              </span>
+              <Chip color="success" variant="flat">
                 {qual.specialization}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </Chip>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

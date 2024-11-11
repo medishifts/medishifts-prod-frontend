@@ -7,7 +7,9 @@ import { ClipLoader } from "react-spinners";
 import Modal from "react-modal";
 import { consolidatedMedicalEducation } from "../app/consolidatedMedicalEducation";
 import SelectDropDown from "./SelectDropDown";
-
+import { consolidatedNurseEducation } from "@/app/consolidatedNurseEducation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const customStyles = {
   content: {
@@ -25,7 +27,7 @@ const customStyles = {
     zIndex: "1000",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",// No change needed for overlay
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 };
 
@@ -34,7 +36,7 @@ interface AddJobModalProps {
   onClose: () => void;
 }
 
-const calculateTimePeriod = (fromDate: string, toDate: string) => {
+const calculateTimePeriod = (fromDate: Date, toDate: Date) => {
   const start = new Date(fromDate);
   const end = new Date(toDate);
 
@@ -55,66 +57,101 @@ const calculateTimePeriod = (fromDate: string, toDate: string) => {
   return `${years} year(s), ${months} month(s), ${days} day(s)`;
 };
 
+const formatDateToString = (date: Date | null): string => {
+  if (!date) return "";
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
   const [position, setPosition] = useState("");
   const [hire, setHire] = useState("Doctor");
-  const [hireFrom, setHireFrom] = useState("");
-  const [hireTo, setHireTo] = useState("");
+  const [hireFrom, setHireFrom] = useState<Date | null>(null);
+  const [hireTo, setHireTo] = useState<Date | null>(null);
   const [timePeriod, setTimePeriod] = useState("");
-  const [salary, setSalary] = useState<any>(null);
+  const [salary, setSalary] = useState<any>("");
   const [jobDescription, setJobDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [calculatingPeriod, setCalculatingPeriod] = useState(false);
   const [shiftFrom, setShiftFrom] = useState("");
   const [shiftTo, setShiftTo] = useState("");
-
   const [selectedDegrees, setSelectedDegrees] = useState<string[]>([]);
   const [selectedPGCourses, setSelectedPGCourses] = useState<string[]>([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState<
     string[]
   >([]);
-  const [authdata, setAuthData] = useState<any>("");
+  const [authdata, setAuthData] = useState<any>(null);
+  const [fee, setFee] = useState<any>(0);
 
   useEffect(() => {
     const auth = getCookie("authData");
     if (auth) {
       const authData = JSON.parse(auth as string);
-      authData && setAuthData(authData);
+      setAuthData(authData);
     }
   }, []);
-  console.log("Auth DATA ", authdata);
 
-  const handleDateChange = (type: "from" | "to", value: string) => {
-    let newHireFrom = hireFrom;
-    let newHireTo = hireTo;
+  const maxFee = 300;
 
-    if (type === "from") {
-      newHireFrom = value;
-      setHireFrom(value);
+  const calculateFee = (salary: any) => {
+    const fee = salary * 0.1;
+    if (fee >= maxFee) {
+      return maxFee;
     } else {
-      newHireTo = value;
-      setHireTo(value);
+      return fee;
     }
-
-    if (newHireFrom && newHireTo) {
-      setCalculatingPeriod(true);
-
-      const period = calculateTimePeriod(newHireFrom, newHireTo);
+  };
+  useEffect(() => {
+    if (hireFrom && hireTo) {
+      const period = calculateTimePeriod(hireFrom, hireTo);
       setTimePeriod(period);
+    }
+  }, [hireFrom, hireTo]);
+  useEffect(() => {
+    if (salary) {
+      const fee = calculateFee(Number(salary));
+      setFee(fee);
+    }
+  }, [salary]);
+  const handleDateChange = (date: Date | null, type: "from" | "to") => {
+    if (type === "from") {
+      setHireFrom(date);
+    } else {
+      setHireTo(date);
+    }
+  };
 
-      setCalculatingPeriod(false);
+  const convertTo12HourFormat = (time: string): string => {
+    const [hours, minutes] = time.split(":");
+    const period = Number(hours) >= 12 ? "PM" : "AM";
+    const hour = Number(hours) % 12 || 12;
+    return `${hour}:${minutes} ${period}`;
+  };
+
+  const handleShiftTimeChange = (type: "from" | "to", value: string) => {
+    if (type === "from") {
+      setShiftFrom(convertTo12HourFormat(value));
+    } else {
+      setShiftTo(convertTo12HourFormat(value));
     }
   };
 
   const handlePostJob = async () => {
+    if (!position || !hireFrom || !hireTo || !salary || !jobDescription) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setLoading(true);
 
     const headersList = {
       Accept: "/",
-      "User-Agent": "Thunder Client (https://www.thunderclient.com)",
-      Authorization: `Bearer ${authdata.token}`,
+      Authorization: `Bearer ${authdata?.token}`,
       "Content-Type": "application/json",
     };
+    console.log(hireFrom);
+    console.log(hireTo);
 
     const bodyContent = JSON.stringify({
       position,
@@ -122,13 +159,13 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
       postGraduateCourses: selectedPGCourses.join(", "),
       specializations: selectedSpecializations.join(", "),
       hire: hire.toUpperCase(),
-      hire_from: new Date(hireFrom).toISOString(),
-      hire_to: new Date(hireTo).toISOString(),
+      hire_from: hireFrom,
+      hire_to: hireTo,
       time_period: timePeriod,
-      salary,
+      salary: Number(salary),
       job_description: jobDescription,
-      hospital: authdata.record.id,
-      hospital_name: authdata.record.name,
+      hospital: authdata?.record?.id,
+      hospital_name: authdata?.record?.name,
       shift_from: shiftFrom,
       shift_to: shiftTo,
     });
@@ -143,6 +180,8 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
         }
       );
 
+      const data = await response.json();
+
       if (response.ok) {
         toast.success("Job posted successfully!");
         setTimeout(() => {
@@ -150,34 +189,23 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
           onClose();
         }, 2000);
       } else {
-        toast.error("Failed to post job. Please try again.");
-        setLoading(false);
+        throw new Error(data.message || data.error || "Failed to post job");
       }
     } catch (error) {
-      toast.error("Error posting job. Please check your connection.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Error posting job. Please check your connection.";
+      toast.error(errorMessage);
       setLoading(false);
-    }
-  };
-
-  const convertTo12HourFormat = (time: any) => {
-    const [hours, minutes] = time.split(":");
-    const period = +hours >= 12 ? "PM" : "AM";
-    const hour = +hours % 12 || 12;
-    return `${hour}:${minutes} ${period}`;
-  };
-
-  const handleShiftTimeChange = (type: "from" | "to", value: string) => {
-    if (type === "from") {
-      setShiftFrom(convertTo12HourFormat(value));
-    } else {
-      setShiftTo(convertTo12HourFormat(value));
     }
   };
 
   return (
     <Modal
+      className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-lg p-5 w-full max-w-lg mx-auto shadow-lg outline-none"
+      overlayClassName="fixed inset-0 bg-black bg-opacity-50"
       isOpen={isOpen}
-      style={customStyles}
       onRequestClose={onClose}
       contentLabel="Add Job Modal"
     >
@@ -188,7 +216,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
       </div>
       <form className="space-y-4 max-h-[400px] overflow-auto dark:bg-gray-800 dark:text-white">
         <div>
-          <label className="block font-medium dark:text-white">Position</label>
+          <label className="block font-medium dark:text-white">Hire as</label>
           <input
             type="text"
             placeholder="Add Position"
@@ -199,7 +227,9 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div>
-          <label className="block font-medium dark:text-white">Hire Type</label>
+          <label className="block font-medium dark:text-white">
+            Hire Doctor/Nurse
+          </label>
           <select
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={hire}
@@ -210,58 +240,95 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
           </select>
         </div>
 
+        {hire === "Doctor" ? (
+          <>
+            <div>
+              <h3 className="dark:text-white">Degree</h3>
+              <SelectDropDown
+                data={consolidatedMedicalEducation.degrees}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedDegrees(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+            <div>
+              <h3 className="dark:text-white">PG Courses</h3>
+              <SelectDropDown
+                data={consolidatedMedicalEducation.postgraduateCourses}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedPGCourses(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+            <div>
+              <h3 className="dark:text-white">Specialisations</h3>
+              <SelectDropDown
+                data={consolidatedMedicalEducation.specializations}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedSpecializations(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <h3 className="dark:text-white">Degree</h3>
+              <SelectDropDown
+                data={consolidatedNurseEducation.degree}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedDegrees(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+            <div>
+              <h3 className="dark:text-white">PG Courses</h3>
+              <SelectDropDown
+                data={consolidatedNurseEducation.postgraduate}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedPGCourses(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+            <div>
+              <h3 className="dark:text-white">Specialisations</h3>
+              <SelectDropDown
+                data={consolidatedNurseEducation.specialization}
+                onChange={(selectedOptions: any[]) => {
+                  setSelectedSpecializations(
+                    selectedOptions.map((option) => option.value)
+                  );
+                }}
+              />
+            </div>
+          </>
+        )}
+
         <div>
-          <h3 className="dark:text-white">Degree</h3>
-          <SelectDropDown
-            data={consolidatedMedicalEducation.degrees}
-            onChange={(selectedOptions: any[]) => {
-              const selectedValues = selectedOptions.map(
-                (option) => option.value
-              );
-              setSelectedDegrees(selectedValues);
-            }}
-          />
-        </div>
-        <div>
-          <h3 className="dark:text-white">PG Courses</h3>
-          <SelectDropDown
-            data={consolidatedMedicalEducation.postgraduateCourses}
-            onChange={(selectedOptions: any[]) => {
-              const selectedValues = selectedOptions.map(
-                (option) => option.value
-              );
-              setSelectedPGCourses(selectedValues);
-            }}
-          />
-        </div>
-        <div>
-          <h3 className="dark:text-white">Specialisations</h3>
-          <SelectDropDown
-            data={consolidatedMedicalEducation.specializations}
-            onChange={(selectedOptions: any[]) => {
-              const selectedValues = selectedOptions.map(
-                (option) => option.value
-              );
-              setSelectedSpecializations(selectedValues);
-            }}
+          <label className="block font-medium dark:text-white">
+            Hire from date
+          </label>
+          <DatePicker
+            selected={hireFrom}
+            onChange={(date: Date | null) => handleDateChange(date, "from")}
+            dateFormat="dd/MM/yyyy"
+            minDate={new Date()}
+            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholderText="Select start date"
+            isClearable
           />
         </div>
 
-        {/* Additional Fields for Date, Time, and Job Description */}
-        <div>
-          <label className="block font-medium dark:text-white">Hire From</label>
-          <input
-            type="date"
-            min={new Date().toISOString().split("T")[0]} // Ensures the minimum date is today
-            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            value={hireFrom}
-            onChange={(e) => handleDateChange("from", e.target.value)}
-            onClick={(e) => {
-              const input = e.target as HTMLInputElement; // Typecast to HTMLInputElement
-              if (input.showPicker) input.showPicker(); // Check if showPicker exists
-            }}
-          />
-        </div>
         <div>
           <label className="block font-medium dark:text-white">
             Shift Time From
@@ -272,20 +339,22 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             onChange={(e) => handleShiftTimeChange("from", e.target.value)}
           />
         </div>
+
         <div>
-          <label className="block font-medium dark:text-white">Hire To</label>
-          <input
-            type="date"
-            min={new Date().toISOString().split("T")[0]} // Ensures the minimum date is today
+          <label className="block font-medium dark:text-white">
+            Hire to date
+          </label>
+          <DatePicker
+            selected={hireTo}
+            onChange={(date: Date | null) => handleDateChange(date, "to")}
+            dateFormat="dd/MM/yyyy"
+            minDate={hireFrom || new Date()}
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            value={hireTo}
-            onChange={(e) => handleDateChange("to", e.target.value)}
-            onClick={(e) => {
-              const input = e.target as HTMLInputElement; // Typecast to HTMLInputElement
-              if (input.showPicker) input.showPicker(); // Check if showPicker exists
-            }}
+            placeholderText="Select end date"
+            isClearable
           />
         </div>
+
         <div>
           <label className="block font-medium dark:text-white">
             Shift Time To
@@ -309,12 +378,20 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
         <div>
           <label className="block font-medium dark:text-white">Salary</label>
           <input
+            onWheel={(e: any) => e.target.blur()}
             type="number"
+            placeholder="Please provide the total amount for the time period"
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={salary}
             onChange={(e) => setSalary(e.target.value)}
           />
+          <span className="dark:text-white">
+            {" "}
+            A platform fee of maximum ₹{salary ? fee : "300"} or 10% of the
+            salary, whichever is lower, will be charged upon hiring.{" "}
+          </span>
         </div>
+
         <div>
           <label className="block font-medium dark:text-white">
             Job Description
@@ -327,6 +404,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
           />
         </div>
       </form>
+
       <div className="flex justify-center">
         <Button
           onPress={handlePostJob}
