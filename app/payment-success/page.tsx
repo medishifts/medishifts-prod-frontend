@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Player } from "@lottiefiles/react-lottie-player";
-import Animatedpayment from "../../public/Animatedpayment.json";
+import Animatedpayment from "./Animatedpayment.json";
 
 export default function PaymentSuccessful() {
   const [mounted, setMounted] = useState(false);
