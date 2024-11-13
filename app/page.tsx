@@ -309,7 +309,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section
+      {/* <section
         className="bg-gray-50 dark:bg-[#000000] py-12 sm:py-16 lg:py-20 xl:py-24"
         data-aos="fade-up"
       >
@@ -365,7 +365,7 @@ export default function Home() {
       <br />
       <section id="pricing">
         <PricingSection />
-      </section>
+      </section> */}
 
       <br />
       <br />
