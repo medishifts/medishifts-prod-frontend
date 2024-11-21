@@ -206,7 +206,11 @@ const HospitalRegistrationModal: React.FC<ModalProps> = ({
                 />
                 <span>
                   I agree to the{" "}
-                  <a href="#" className="text-blue-600 underline">
+                  <a
+                    href="/terms-conditions"
+                    className="text-blue-600 underline"
+                    target="_blank"
+                  >
                     Terms and Conditions
                   </a>
                 </span>
