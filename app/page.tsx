@@ -265,36 +265,31 @@ export default function Home() {
                 data-aos="fade-up"
                 data-aos-delay="100"
               >
-                Welcome to our company! We are committed to providing
-                exceptional services and solutions to our clients. Our team of
-                experts works diligently to ensure the highest standards of
-                quality and customer satisfaction.
+            At Medishifts, we’re revolutionizing healthcare staffing by connecting hospitals with skilled and verified healthcare professionals for short-term, high-impact roles. Whether you’re a doctor or nurse looking to earn extra income during your free time or a hospital needing temporary staffing solutions, Medishifts is your trusted partner.  
               </p>
               <p
                 className="text-lg text-gray-700 dark:text-gray-300 mb-6"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
-                With years of experience in the industry, we have built a
-                reputation for delivering innovative and effective solutions
-                that meet the unique needs of our clients. Our mission is to
-                help businesses thrive by providing them with the tools and
-                support they need to succeed.
+               Our platform bridges the gap between opportunity and availability, offering:  
+- Verified Professionals: Only qualified and vetted healthcare workers are listed.  
+- Flexibility: Short-term, high-paying jobs tailored to your schedule.  
+- Quick Solutions: Hospitals can hire professionals without the hassle of traditional recruitment processes.
               </p>
               <p
                 className="text-lg text-gray-700 dark:text-gray-300 mb-6"
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
-                Join us on our journey to excellence and let us help you achieve
-                your business goals. We look forward to working with you!
+                We’re on a mission to empower healthcare professionals while supporting hospitals in providing seamless patient care. Join us in transforming the future of healthcare staffing in India. 
               </p>
               <blockquote
                 className="text-xl italic font-semibold text-gray-900 dark:text-gray-100"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
-                "Striving for excellence, one client at a time."
+                Medishifts – Flexible Solutions, Trusted Professionals
               </blockquote>
             </div>
             <div className="lg:w-1/2">
