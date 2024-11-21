@@ -232,16 +232,12 @@ export default function Home() {
             tailored to your expertise and aspirations, regardless of your
             experience level
           </p>
-          <button
+          <a
             className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 py-2 px-6 rounded-full text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg animate-bounce"
-            onClick={() =>
-              document
-                .getElementById("about-us")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            href="/usertype"
           >
             Get Started
-          </button>
+          </a>
         </div>
       </div>
       <br />
