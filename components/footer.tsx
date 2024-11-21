@@ -74,11 +74,11 @@ const Footer: React.FC = () => (
         <div className="flex items-center text-gray-300 dark:text-gray-400">
           <p className="mr-2">Email:</p>
           <a
-            href="mailto:support@medishifts.in"
+            href="mailto:medishifts@gmail.com"
             className="text-blue-400 hover:text-blue-300 dark:text-blue-300 dark:hover:text-blue-200 transition duration-300"
             title="send email"
           >
-            support@medishifts.in
+            medishifts@gmail.com
           </a>
         </div>
       </div>
@@ -91,7 +91,7 @@ const Footer: React.FC = () => (
       <ul className="flex flex-wrap gap-4">
         <li>
           <a
-            href="#"
+            href="/privacy-policy"
             className="text-sm text-gray-400 hover:text-blue-400 dark:text-gray-500 dark:hover:text-blue-300 transition duration-300"
           >
             Privacy &amp; Cookies Policy
@@ -99,10 +99,10 @@ const Footer: React.FC = () => (
         </li>
         <li>
           <a
-            href="#"
+            href="/terms-conditions"
             className="text-sm text-gray-400 hover:text-blue-400 dark:text-gray-500 dark:hover:text-blue-300 transition duration-300"
           >
-            Terms of Service
+            Terms and Conditions
           </a>
         </li>
       </ul>
