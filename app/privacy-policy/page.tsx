@@ -156,6 +156,22 @@ const PrivacyPolicyPage = () => {
             </li>
           </ul>
         </section>
+        <section className="text-center mt-10">
+          <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-6">
+            <a
+              href="/terms-conditions"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition"
+            >
+              View Terms & Conditions
+            </a>
+            <a
+              href="/refund-cancellation-policy"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-400 transition"
+            >
+              View Refund & Cancellation Policy
+            </a>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -14,14 +14,16 @@ const App = () => {
   const [isProfessionalModalOpen, setProfessionalModalOpen] = useState(false);
 
   return (
-    <>
-      <h1
-        className={`text-3xl font-extrabold mb-8 ${
-          isDark ? "text-gray-100" : "text-gray-800"
-        }`}
-      >
-        Welcome to Our Registration Portal
-      </h1>
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1
+          className={`text-3xl font-extrabold ${
+            isDark ? "text-gray-100" : "text-gray-800"
+          }`}
+        >
+          Welcome to Our Registration Portal
+        </h1>
+      </div>
       <div
         className={`flex flex-col items-center min-h-screen p-6 ${
           isDark ? "bg-gray-900" : "bg-gray-100"
@@ -171,7 +173,7 @@ const App = () => {
           onClose={() => setProfessionalModalOpen(false)}
         />
       </div>
-    </>
+    </div>
   );
 };
 

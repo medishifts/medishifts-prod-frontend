@@ -211,10 +211,19 @@ const HospitalRegistrationModal: React.FC<ModalProps> = ({
                     className="text-blue-600 underline"
                     target="_blank"
                   >
-                    Terms and Conditions
+                    Terms and Conditions & Privacy and Policy
                   </a>
                 </span>
               </label>
+              <p className="text-sm flex justify-center  text-gray-600 dark:text-gray-400">
+                Already have an account?{" "}
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-blue-500 hover:text-blue-400 underline font-semibold transition"
+                >
+                  Log in
+                </button>
+              </p>
             </div>
             <button
               type="submit"

@@ -29,6 +29,7 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
   const [rePasswordVisible, setRePasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const validatePassword = (password: string) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/;
@@ -259,10 +260,19 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
                       className="text-blue-600 underline"
                       target="_blank"
                     >
-                      Terms and Conditions
+                      Terms and Conditions & Privacy and Policy
                     </a>
                   </span>
                 </label>
+                <p className="text-sm flex justify-center  text-gray-600 dark:text-gray-400">
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="text-blue-500 hover:text-blue-400 underline font-semibold transition"
+                  >
+                    Log in
+                  </button>
+                </p>
               </div>
               <button
                 type="submit"
@@ -275,6 +285,10 @@ const ProfessionalRegistrationModal: React.FC<ModalProps> = ({
           </div>
         </div>
       </div>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </>
   );
 };

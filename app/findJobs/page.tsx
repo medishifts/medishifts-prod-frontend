@@ -326,7 +326,7 @@ export default function JobsPage() {
       </header>
 
       {/* Search Bar */}
-      <div className="flex justify-center mt-12 mb-8 px-4">
+      {/* <div className="flex justify-center mt-12 mb-8 px-4">
         <input
           type="text"
           value={searchTerm}
@@ -339,7 +339,7 @@ export default function JobsPage() {
               : "bg-white text-gray-900 border-gray-300 placeholder-gray-400"
           }`}
         />
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <div className="flex flex-col md:flex-row p-6 gap-8">

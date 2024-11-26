@@ -379,21 +379,9 @@ export const Navbar = () => {
                         <li className="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
                           <button
                             className="w-full text-left"
-                            // onClick={() => {
-                            //   window.location.href =
-                            //     "/hospital-dashboard?page=hired-professionals";
-                            // }}
-                          >
-                            Ratings
-                          </button>
-                        </li>
-
-                        <li className="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">
-                          <button
-                            className="w-full text-left"
                             onClick={handleSignOut}
                           >
-                            Sign out
+                            Log out
                           </button>
                         </li>
                       </ul>
@@ -590,17 +578,6 @@ export const Navbar = () => {
                   </>
                 )}
 
-                <NavbarMenuItem>
-                  <Button
-                    className="text-sm font-normal text-default-600 bg-default-100"
-                    // onClick={() => {
-                    //   window.location.href =
-                    //     "/hospital-dashboard?page=hired-professionals";
-                    // }}
-                  >
-                    Ratings
-                  </Button>
-                </NavbarMenuItem>
                 <NavbarMenuItem>
                   <Button
                     className="text-sm font-normal text-default-600 bg-default-100"
