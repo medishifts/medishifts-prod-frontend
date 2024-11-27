@@ -261,24 +261,33 @@ export default function Home() {
                 data-aos="fade-up"
                 data-aos-delay="100"
               >
-            At Medishifts, we’re revolutionizing healthcare staffing by connecting hospitals with skilled and verified healthcare professionals for short-term, high-impact roles. Whether you’re a doctor or nurse looking to earn extra income during your free time or a hospital needing temporary staffing solutions, Medishifts is your trusted partner.  
+                At Medishifts, we’re revolutionizing healthcare staffing by
+                connecting hospitals with skilled and verified healthcare
+                professionals for short-term, high-impact roles. Whether you’re
+                a doctor or nurse looking to earn extra income during your free
+                time or a hospital needing temporary staffing solutions,
+                Medishifts is your trusted partner.
               </p>
               <p
                 className="text-lg text-gray-700 dark:text-gray-300 mb-6"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
-               Our platform bridges the gap between opportunity and availability, offering:  
-- Verified Professionals: Only qualified and vetted healthcare workers are listed.  
-- Flexibility: Short-term, high-paying jobs tailored to your schedule.  
-- Quick Solutions: Hospitals can hire professionals without the hassle of traditional recruitment processes.
+                Our platform bridges the gap between opportunity and
+                availability, offering: - Verified Professionals: Only qualified
+                and vetted healthcare workers are listed. - Flexibility:
+                Short-term, high-paying jobs tailored to your schedule. - Quick
+                Solutions: Hospitals can hire professionals without the hassle
+                of traditional recruitment processes.
               </p>
               <p
                 className="text-lg text-gray-700 dark:text-gray-300 mb-6"
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
-                We’re on a mission to empower healthcare professionals while supporting hospitals in providing seamless patient care. Join us in transforming the future of healthcare staffing in India. 
+                We’re on a mission to empower healthcare professionals while
+                supporting hospitals in providing seamless patient care. Join us
+                in transforming the future of healthcare staffing in India.
               </p>
               <blockquote
                 className="text-xl italic font-semibold text-gray-900 dark:text-gray-100"
@@ -360,7 +369,6 @@ export default function Home() {
 
       <br />
       <br />
-      <Footer />
     </>
   );
 }

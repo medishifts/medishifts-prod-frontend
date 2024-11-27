@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { ReduxProvider } from "@/app/redux/features/provider";
 import { Toaster } from "react-hot-toast";
 import { Metadata } from "next";
+import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "Medishifts.in",
@@ -45,6 +46,7 @@ export default async function RootLayout({
               <main className="container mx-auto max-w-full pt-5 px-2 flex-grow">
                 {children}
               </main>
+              <Footer />
             </div>
           </Providers>
         </ReduxProvider>

@@ -1,5 +1,5 @@
 import React from "react";
-
+import { MessageCircle, Mail, Phone } from "lucide-react";
 const CancellationPolicy = () => {
   return (
     <div className="p-6 md:p-12 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -163,27 +163,36 @@ const CancellationPolicy = () => {
             8. Contact Information
           </h2>
           <p>
-            For any questions or concerns regarding these Refund and
-            Cancellation Policies, please contact us at:
+            For any questions or concerns regarding these Refund & Cancellation
+            Policies, please contact us at:
           </p>
-          <ul className="ml-6 mt-4 space-y-2">
+          <ul className="ml-6 mt-2">
             <li>
-              <span>Email: </span>
               <a
-                href="mailto:medishifts@gmail.com"
-                className="text-blue-500 hover:text-blue-400 underline"
+                href="https://wa.me/917499544044"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
               >
-                medishifts@gmail.com
+                <MessageCircle size={24} />
+                <span>WhatsApp</span>
               </a>
             </li>
             <li>
-              <span>WhatsApp: </span>
               <a
-                href="https://wa.me/917499544044"
-                className="text-blue-500 hover:text-blue-400 underline"
+                href="mailto:medishits@gmail.com"
+                className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
               >
-                +917499544044
+                <Mail size={24} />
+                <span>Gmail</span>
               </a>
+            </li>
+
+            <li>
+              <div className="flex items-center space-x-2 text-blue-500">
+                <Phone size={24} />
+                <span>+91 7499544044</span>
+              </div>
             </li>
           </ul>
         </section>

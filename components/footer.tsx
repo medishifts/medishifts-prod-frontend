@@ -1,5 +1,5 @@
 import React from "react";
-
+import { MessageCircle, Mail, Phone } from "lucide-react";
 const Footer: React.FC = () => (
   <footer className="bg-gray-900 text-gray-200 py-6 px-4 sm:px-6 lg:px-8 border-t-2 border-gray-700 dark:bg-gray-800 dark:border-gray-600">
     <div className="container mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -39,6 +39,33 @@ const Footer: React.FC = () => (
           >
             Nurses
           </a>
+        </div>
+      </div>
+      <div className="text-sm space-y-2">
+        <p className="text-sm font-semibold text-white dark:text-gray-100">
+          Contact Us
+        </p>
+        <div className="flex items-center space-x-4">
+          <a
+            href="https://wa.me/917499544044"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
+          >
+            <MessageCircle size={24} />
+            <span>WhatsApp</span>
+          </a>
+          <a
+            href="mailto:medishits@gmail.com"
+            className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
+          >
+            <Mail size={24} />
+            <span>Gmail</span>
+          </a>
+          <div className="flex items-center space-x-2 text-blue-500">
+            <Phone size={24} />
+            <span>+91 7499544044</span>
+          </div>
         </div>
       </div>
     </div>

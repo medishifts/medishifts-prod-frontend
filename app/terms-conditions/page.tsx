@@ -1,3 +1,4 @@
+import { MessageCircle, Mail, Phone } from "lucide-react";
 import React from "react";
 
 const TermsAndConditions = () => {
@@ -155,22 +156,31 @@ const TermsAndConditions = () => {
           </p>
           <ul className="ml-6 mt-2">
             <li>
-              Email:{" "}
               <a
-                href="mailto:medishifts@gmail.com"
-                className="text-blue-500 underline"
+                href="https://wa.me/917499544044"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-green-500 hover:text-green-600 transition-colors"
               >
-                medishifts@gmail.com
+                <MessageCircle size={24} />
+                <span>WhatsApp</span>
               </a>
             </li>
             <li>
-              WhatsApp:{" "}
               <a
-                href="https://wa.me/917499544044"
-                className="text-blue-500 underline"
+                href="mailto:medishits@gmail.com"
+                className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
               >
-                +917499544044
+                <Mail size={24} />
+                <span>Gmail</span>
               </a>
+            </li>
+
+            <li>
+              <div className="flex items-center space-x-2 text-blue-500">
+                <Phone size={24} />
+                <span>+91 7499544044</span>
+              </div>
             </li>
           </ul>
         </section>
