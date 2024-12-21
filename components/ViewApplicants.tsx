@@ -374,7 +374,7 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
               </div>
 
               {/* Status */}
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-md">
+              {/* <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-md">
                 <h4 className="font-semibold text-xl text-gray-700 dark:text-gray-200 mb-3">
                   Status
                 </h4>
@@ -402,7 +402,7 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
                     {selectedUser.mobile_verified ? "Verified" : "Not Verified"}
                   </span>
                 </p>
-              </div>
+              </div> */}
 
               {/* Address */}
               {selectedUser.address && (

@@ -1185,14 +1185,8 @@ export default function EditProfileComponent(props: any) {
                   {isPhotoUploaded
                     ? "Update Profile Photo"
                     : "Select Profile Photo"}
-                  <span className="text-red-500 ml-1">*</span>
                 </label>
-                <span>
-                  If you're only updating your profile photo, there's no need to
-                  click 'Save Changes.' Your photo will automatically update
-                  once the upload is complete, and a confirmation notification
-                  will appear.
-                </span>
+
                 {/* <button
                   onClick={uploadProfilePhoto}
                   className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

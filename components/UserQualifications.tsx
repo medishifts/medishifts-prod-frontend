@@ -53,7 +53,7 @@ const UserQualifications: React.FC<UserQualificationsProps> = ({ userId }) => {
               {qual.degree}
             </Chip>
           </div>
-          {qual.pg && (
+          {qual.pg && qual.pg !== "Not Applicable" && (
             <div className="mb-2">
               <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2">
                 Post Graduation:
@@ -63,7 +63,7 @@ const UserQualifications: React.FC<UserQualificationsProps> = ({ userId }) => {
               </Chip>
             </div>
           )}
-          {qual.specialization && (
+          {qual.specialization && qual.specialization !== "Not Applicable" && (
             <div>
               <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 mr-2">
                 Specialization:

@@ -6,6 +6,10 @@ import { Button } from "@nextui-org/button";
 import { getCookie } from "cookies-next";
 import toast from "react-hot-toast";
 import UserQualifications from "./UserQualifications";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
+import { useAppSelector } from "@/app/redux/store";
+import { Star } from "lucide-react";
 
 type User = {
   id: string;
@@ -30,6 +34,7 @@ type User = {
   hospital_document: string;
   experience: string;
   experienceYears: string;
+  average_rating: number;
 };
 
 interface Applicant {
@@ -42,6 +47,8 @@ interface Applicant {
   hospitalName?: string;
   isHired?: boolean;
   applicant_id?: string;
+  is_hospital_rated: number;
+  applicant_avg_rating: number;
 }
 
 interface ViewApplicantsModalProps {
@@ -51,6 +58,8 @@ interface ViewApplicantsModalProps {
 }
 
 interface PocketBaseApplicant {
+  applicant_avg_rating: any;
+  is_hospital_rated: any;
   job_id: any;
   id: string;
   applicant_id?: string;
@@ -80,7 +89,8 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
   } | null>(null);
   const backendApi = process.env.NEXT_PUBLIC_BACKEND_API;
   const [authdata, setAuthData] = useState<any>("");
-
+  const [rating, setRating] = useState(0);
+  const userId = useAppSelector((state) => state.profileReducer.value.id);
   useEffect(() => {
     const data = getCookie("authData");
     if (data) {
@@ -108,6 +118,10 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
           isHired: (record as unknown as PocketBaseApplicant).is_hired,
           applicant_id: (record as unknown as PocketBaseApplicant).applicant_id,
           job_id: (record as unknown as PocketBaseApplicant).job_id,
+          is_hospital_rated: (record as unknown as PocketBaseApplicant)
+            .is_hospital_rated,
+          applicant_avg_rating: (record as unknown as PocketBaseApplicant)
+            .applicant_avg_rating,
         }));
 
         setApplicants(applicantsData);
@@ -207,6 +221,7 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
         hospital_document: user.hospital_document,
         experience: user.experience,
         experienceYears: user.experienceYears,
+        average_rating: user.average_rating,
       });
       setIsUserDetailsModalOpen(true);
       console.log();
@@ -231,6 +246,41 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
   const handleCancelHire = () => {
     setApplicantToHire(null);
     setIsConfirmationModalOpen(false);
+  };
+  const handleRating = async (
+    applicantId: string | undefined,
+    enrollment_id: string | undefined
+  ) => {
+    try {
+      let headersList = {
+        Accept: "*/*",
+        Authorization: `Bearer ${authdata.token}`,
+        "Content-Type": "application/json",
+      };
+
+      let bodyContent = JSON.stringify({
+        enrollment_id: enrollment_id,
+        rating: rating,
+        user: applicantId,
+      });
+
+      let response = await fetch(`${backendApi}/api/review`, {
+        method: "POST",
+        body: bodyContent,
+        headers: headersList,
+      });
+
+      if (response.ok) {
+        let data = await response.json(); // Assuming the API sends a JSON response
+        toast.success(data.message || "Rating submitted successfully!");
+      } else {
+        let errorData = await response.json();
+        toast.error(errorData.message || "Something went wrong!");
+      }
+    } catch (error) {
+      toast.error("Network error or unexpected issue occurred!");
+      console.error("Error:", error);
+    }
   };
 
   if (!isOpen) return null;
@@ -264,7 +314,7 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
                   key={applicant.id}
                   className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex justify-between items-center"
                 >
-                  <div>
+                  <div className="w-full">
                     <h4 className="text-lg font-semibold">{applicant.name}</h4>
                     <p className="text-gray-600 dark:text-gray-300">
                       {applicant.email}
@@ -274,30 +324,63 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
                         {applicant.hospitalName}
                       </p>
                     )}
+                    <div className="flex  space-x-4">
+                      {applicant.is_hospital_rated > 0 ? (
+                        <>
+                          <Rating
+                            style={{ maxWidth: 120 }}
+                            value={applicant.is_hospital_rated}
+                            readOnly
+                          />
+                          <p className="text-sm flex items-center">
+                            Rated {applicant.is_hospital_rated}{" "}
+                            <Star color="#e29f0f" fill="#e29f0f" size={19} />
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <Rating
+                            style={{ maxWidth: 120 }}
+                            value={rating}
+                            onChange={setRating}
+                          />
+                          ({applicant.applicant_avg_rating} Avg Rated)
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col ">
                     {applicant.applicant_id && (
-                      <Button
-                        onClick={() => handleView(applicant.applicant_id || "")}
-                        size="sm"
-                        color="primary"
-                      >
-                        View
-                      </Button>
+                      <>
+                        <div className=" py-3">
+                          <Button
+                            onClick={() =>
+                              handleView(applicant.applicant_id || "")
+                            }
+                            size="sm"
+                            color="primary"
+                          >
+                            View
+                          </Button>
+
+                          {!applicant.is_hospital_rated && (
+                            <Button
+                              className="mt-8"
+                              onClick={() =>
+                                handleRating(
+                                  applicant.applicant_id || "",
+                                  applicant.id || ""
+                                )
+                              }
+                              size="sm"
+                              color="warning"
+                            >
+                              Rate
+                            </Button>
+                          )}
+                        </div>
+                      </>
                     )}
-                    {/* <Button
-                      onClick={() =>
-                        handleHireClick(
-                          applicant.applicant_id,
-                          applicant.job_id
-                        )
-                      }
-                      size="sm"
-                      color="success"
-                      disabled={applicant.isHired}
-                    >
-                      {applicant.isHired ? "Hired" : "Hire"}
-                    </Button> */}
                   </div>
                 </li>
               ))}

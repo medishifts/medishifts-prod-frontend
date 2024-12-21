@@ -24,6 +24,7 @@
 		"@react-aria/ssr": "3.9.4",
 		"@react-aria/visually-hidden": "3.8.12",
 		"@reduxjs/toolkit": "^2.2.7",
+		"@smastrom/react-rating": "^1.5.0",
 		"aos": "^2.3.4",
 		"clsx": "2.1.1",
 		"cookies-next": "^4.2.1",
@@ -46,6 +47,7 @@
 		"react-router-dom": "^6.26.0",
 		"react-select": "^5.8.0",
 		"react-spinners": "^0.14.1",
+		"react-stars": "^2.2.5",
 		"react-transition-group": "^4.4.5",
 		"redux-persist": "^6.0.0",
 		"swiper": "^11.1.9"
@@ -56,6 +58,7 @@
 		"@types/react": "18.3.3",
 		"@types/react-dom": "18.3.0",
 		"@types/react-modal": "^3.16.3",
+		"@types/react-stars": "^2.2.4",
 		"@types/react-transition-group": "^4.4.10",
 		"@typescript-eslint/eslint-plugin": "7.2.0",
 		"@typescript-eslint/parser": "7.2.0",

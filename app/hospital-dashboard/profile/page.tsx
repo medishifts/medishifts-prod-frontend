@@ -21,6 +21,9 @@ import {
   ModalBody,
   ModalFooter,
 } from "@nextui-org/react";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
+import { Star } from "lucide-react";
 
 interface ProfileData {
   name: string;
@@ -38,6 +41,7 @@ interface ProfileData {
   profileImage: string;
   bannerImage: string;
   is_document_uploaded: boolean;
+  average_rating: number;
 }
 const HospitalProfilePage = (props: any) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -69,6 +73,7 @@ const HospitalProfilePage = (props: any) => {
           mobile: record.mobile,
           dob: new Date(record.dob).toLocaleDateString(),
           specialties: [{ name: record.selectedSpecializations, level: 3 }],
+          average_rating: record.average_rating,
           bio: record.bio,
           experience: record.experience,
           experienceYears: record.experienceYears,
@@ -150,6 +155,12 @@ const HospitalProfilePage = (props: any) => {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-serif sm:text-white dark:text-white  text-black text-shadow-lg">
                   {profileData.name}
                 </h1>
+                <div className="flex   items-center justify-center sm:justify-start">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black md:text-white ml-2 sm:ml-0">
+                    {profileData.average_rating} Overall Rating
+                  </p>
+                </div>
 
                 <p className="text-sm md:text-base mt-2 text-gray-800 dark:text-white flex items-center justify-center sm:justify-start">
                   <FaMapMarkerAlt className="mr-2" /> {profileData.location}
@@ -197,7 +208,7 @@ const HospitalProfilePage = (props: any) => {
               </h2>
               <div className="flex flex-wrap gap-2">
                 {bioServices.map((service, index) => (
-                  <Chip key={index} color="primary" variant="flat">
+                  <Chip key={index} color="warning" variant="shadow">
                     {service}
                   </Chip>
                 ))}

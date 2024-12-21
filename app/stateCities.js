@@ -817,6 +817,11 @@ export const stateCityData = {
     "Tamenglong",
     "Chandel",
     "Moreh",
+    "Moirang",
+    "Jiribam",
+    "Nambol",
+    "Kangpokpi",
+    "Andro",
   ],
   Meghalaya: [
     "Shillong",
@@ -827,6 +832,10 @@ export const stateCityData = {
     "Williamnagar",
     "Cherrapunji",
     "Mairang",
+    "Nongstoin",
+    "Resubelpara",
+    "Mawkyrwat",
+    "Dawki",
   ],
   Mizoram: [
     "Aizawl",
@@ -838,6 +847,10 @@ export const stateCityData = {
     "Mamit",
     "Saiha",
     "Bairabi",
+    "Hnahthial",
+    "Khawzawl",
+    "Saitual",
+    "North Vanlaiphai",
   ],
   Nagaland: [
     "Kohima",

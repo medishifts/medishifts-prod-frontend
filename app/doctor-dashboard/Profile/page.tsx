@@ -24,6 +24,10 @@ import {
   ModalBody,
   ModalFooter,
 } from "@nextui-org/react";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
+import { Star } from "lucide-react";
+
 interface EducationDetails {
   degree: string;
   pg: string[];
@@ -47,6 +51,7 @@ interface ProfileData {
   is_document_uploaded: boolean;
   isFirstTimeCompleted: boolean;
   registrationNumber: string;
+  average_rating: number;
 }
 
 const ProfileDoctor = (props: any) => {
@@ -81,6 +86,7 @@ const ProfileDoctor = (props: any) => {
           mobile: record.mobile,
           dob: new Date(record.dob).toLocaleDateString(),
           specialties: [{ name: record.selectedSpecializations, level: 3 }],
+          average_rating: record.average_rating,
           bio: record.bio,
           isFirstTimeCompleted: record.isFirstTimeCompleted,
           experience: record.experience,
@@ -142,8 +148,15 @@ const ProfileDoctor = (props: any) => {
   const educationDetails: EducationDetails = education.reduce(
     (acc: EducationDetails, record) => {
       acc.degree = record.degree; // Assuming all records have the same degree
-      acc.pg.push(record.pg); // Collect all PG degrees
-      acc.specialization.push(record.specialization); // Collect all specializations
+
+      // Filter "Not Applicable" values while pushing
+      if (record.pg !== "Not Applicable") {
+        acc.pg.push(record.pg);
+      }
+      if (record.specialization !== "Not Applicable") {
+        acc.specialization.push(record.specialization);
+      }
+
       return acc;
     },
     { degree: "", pg: [], specialization: [] }
@@ -190,6 +203,12 @@ const ProfileDoctor = (props: any) => {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-serif sm:text-white dark:text-white  text-black text-shadow-lg ">
                   {profileData.name}
                 </h1>
+                <div className="flex   items-center justify-center sm:justify-start">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black md:text-white ml-2 sm:ml-0">
+                    {profileData.average_rating} Overall Rating
+                  </p>
+                </div>
                 <p>
                   <span className="text-lg sm:text-xl lg:text-white text-black dark:text-white">
                     {profileData.experienceYears} Years of Medical experience
@@ -208,15 +227,23 @@ const ProfileDoctor = (props: any) => {
                   </span>
                 </p>
                 <p className="text-lg sm:text-xl text-gray-800 dark:text-white">
-                  <Chip color="primary" variant="flat">
-                    {educationDetails.degree}
-                  </Chip>
-                  <Chip color="secondary" variant="flat">
-                    {educationDetails.pg}
-                  </Chip>
-                  <Chip color="success" variant="flat">
-                    {educationDetails.specialization}
-                  </Chip>
+                  {educationDetails.degree &&
+                    educationDetails.degree !== "Not Applicable" && (
+                      <Chip color="primary" variant="flat">
+                        {educationDetails.degree}
+                      </Chip>
+                    )}
+
+                  {educationDetails.pg && (
+                    <Chip color="secondary" variant="flat">
+                      {educationDetails.pg}
+                    </Chip>
+                  )}
+                  {educationDetails.specialization && (
+                    <Chip color="success" variant="flat">
+                      {educationDetails.specialization}
+                    </Chip>
+                  )}
                 </p>
 
                 <p className="text-sm md:text-base mt-2 text-gray-800 dark:text-white flex items-center justify-center sm:justify-start">

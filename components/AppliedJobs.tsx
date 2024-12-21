@@ -10,6 +10,7 @@ import {
   Button,
   useDisclosure,
   Spinner,
+  divider,
 } from "@nextui-org/react";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -26,7 +27,12 @@ import {
   FileText,
   Award,
   Stethoscope,
+  Star,
 } from "lucide-react";
+import { useAppSelector } from "@/app/redux/store";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
+import { getCookie } from "cookies-next";
 
 const pb = new PocketBase(process.env.NEXT_PUBLIC_BACKEND_API);
 
@@ -53,6 +59,9 @@ interface AppliedJob {
   shift_from: string;
   shift_to: string;
   time_period: string;
+  is_doctor_rated: number;
+  is_hospital_rated: number;
+  is_nurse_rated: number;
 }
 
 const JobCard: React.FC<{
@@ -61,6 +70,55 @@ const JobCard: React.FC<{
   onWithdraw: () => void;
   isDark: boolean;
 }> = ({ job, onViewDetails, onWithdraw, isDark }) => {
+  const backendApi = process.env.NEXT_PUBLIC_BACKEND_API;
+  const [rating, setRating] = useState(0);
+  const userId = useAppSelector((state) => state.profileReducer.value.id);
+  const [authdata, setAuthData] = useState<any | null>(null);
+  useEffect(() => {
+    const data = getCookie("authData");
+    if (data) {
+      console.log(data);
+      const authData = JSON.parse(data as string);
+      authData && setAuthData(authData);
+    }
+  }, []);
+
+  const handleRating = async (
+    user: string | undefined,
+    enrollment_id: string | undefined
+  ) => {
+    try {
+      let headersList = {
+        Accept: "*/*",
+        Authorization: `Bearer ${authdata.token}`,
+        "Content-Type": "application/json",
+      };
+
+      let bodyContent = JSON.stringify({
+        enrollment_id: enrollment_id,
+        rating: rating,
+        user: user,
+      });
+
+      let response = await fetch(`${backendApi}/api/review`, {
+        method: "POST",
+        body: bodyContent,
+        headers: headersList,
+      });
+
+      if (response.ok) {
+        let data = await response.json(); // Assuming the API sends a JSON response
+        toast.success(data.message || "Rating submitted successfully!");
+      } else {
+        let errorData = await response.json();
+        toast.error(errorData.message || "Something went wrong!");
+      }
+    } catch (error) {
+      toast.error("Network error or unexpected issue occurred!");
+      console.error("Error:", error);
+    }
+  };
+
   const generateLightColor = () => {
     const hue = Math.floor(Math.random() * 360);
     const lightness = Math.floor(Math.random() * 20) + 80;
@@ -168,6 +226,38 @@ const JobCard: React.FC<{
             {job.is_hired ? "Hired" : "Not Hired"}
           </Chip>
         </p>
+        {job.is_hired && (
+          <div className="flex justify-between items-center">
+            {job.is_doctor_rated > 0 ? (
+              <>
+                <Rating
+                  style={{ maxWidth: 120 }}
+                  value={job.is_doctor_rated}
+                  readOnly
+                />
+                <p className="text-sm flex">
+                  Rated {job.is_doctor_rated}{" "}
+                  <Star color="yellow" fill="#e29f0f" size={19} />
+                </p>
+              </>
+            ) : (
+              <>
+                <Rating
+                  style={{ maxWidth: 120 }}
+                  value={rating}
+                  onChange={setRating}
+                />
+                <Button
+                  onClick={() => handleRating(job.hospital || "", job.id || "")}
+                  size="sm"
+                  color="warning"
+                >
+                  Rate
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between items-center mt-auto pt-4">
