@@ -14,18 +14,9 @@ const App = () => {
   const [isProfessionalModalOpen, setProfessionalModalOpen] = useState(false);
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1
-          className={`text-3xl font-extrabold ${
-            isDark ? "text-gray-100" : "text-gray-800"
-          }`}
-        >
-          Welcome to Our Registration Portal
-        </h1>
-      </div>
+    <div className="min-h-screen">
       <div
-        className={`flex flex-col items-center min-h-screen p-6 ${
+        className={`flex flex-col items-center min-h-screen py-6 md:py-12 px-2 md:px-6 ${
           isDark ? "bg-gray-900" : "bg-gray-100"
         } relative`}
         style={{
@@ -35,64 +26,64 @@ const App = () => {
           backgroundAttachment: "fixed",
         }}
       >
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 to-purple-600/30 backdrop-blur-sm" />
+
         <div
-          className={`relative z-10 flex flex-col items-center h-70% p-6 ${
-            isDark ? "bg-gray-900 bg-opacity-70" : "bg-gray-100 bg-opacity-70"
+          className={`relative z-10 w-full max-w-6xl mx-auto p-4 md:p-8 rounded-xl md:rounded-2xl shadow-2xl backdrop-blur-md ${
+            isDark ? "bg-gray-900/80" : "bg-gray-100/80"
           }`}
         >
-          <div className="flex flex-col items-center gap-6 md:flex-row md:gap-12 md:justify-center">
+          <div className="flex flex-col items-center gap-4 md:gap-16 md:flex-row md:justify-center">
             {/* Card for Registering a Professional */}
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              className={`max-w-xs md:max-w-sm lg:max-w-md shadow-lg rounded-lg overflow-hidden ${
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className={`w-full max-w-md shadow-xl rounded-xl overflow-hidden ${
                 isDark
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-300"
-              } transition-transform duration-300`}
+                  ? "bg-gray-800/90 border-gray-700"
+                  : "bg-white/90 border-gray-300"
+              } transition-all duration-300 hover:shadow-2xl`}
             >
-              <Card>
+              <Card className="border-none bg-transparent">
                 <CardHeader
-                  className={`pb-0 pt-2 px-4 text-center ${
+                  className={`pb-0 pt-4 md:pt-6 px-4 md:px-6 text-center ${
                     isDark ? "text-gray-300" : "text-gray-800"
                   }`}
                 >
                   <p
-                    className={`text-xs uppercase font-bold ${
-                      isDark ? "text-blue-400" : "text-blue-600"
+                    className={`text-xs uppercase font-bold px-3 py-1 md:px-4 md:py-1.5 rounded-full ${
+                      isDark
+                        ? "bg-blue-900/50 text-blue-400"
+                        : "bg-blue-100 text-blue-600"
                     }`}
                   >
-                    For Professionals
+                    For Healthcare Professionals
                   </p>
-                  <h4
-                    className={`font-bold text-lg mt-1 ${
-                      isDark ? "text-gray-100" : "text-gray-800"
-                    }`}
-                  >
-                    Join Our Network
-                  </h4>
                 </CardHeader>
                 <CardBody
-                  className={`py-4 px-6 text-center ${
+                  className={`py-4 md:py-6 px-4 md:px-8 text-center ${
                     isDark ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-4 md:mb-6 overflow-hidden rounded-xl shadow-lg">
                     <Image
                       alt="Professional Registration"
-                      className="object-cover rounded-lg"
+                      className="object-cover rounded-lg transform hover:scale-105 transition-transform duration-500"
                       src="https://media.istockphoto.com/id/1486019083/photo/doctors-working-on-the-move.webp?b=1&s=170667a&w=0&k=20&c=dHfuVJAEGEmvJqPnFqv6OAFuJDBRiPEYoVqaom9w5Vs="
                       width={270}
                       height={180}
                     />
                   </div>
-                  <p className="mb-4 text-sm leading-relaxed">
-                    Are you a professional looking to connect with industry
-                    leaders and expand your network? Register now to become a
-                    part of our exclusive professional community.
+                  <p className="mb-4 md:mb-8 text-sm leading-relaxed">
+                    Welcome to Medishifts! Here, you can find flexible,
+                    short-term job opportunities tailored to fit your schedule.
+                    Join us to earn extra income, explore new experiences, and
+                    manage your time on your terms
                   </p>
                   <Button
                     color="primary"
-                    className="w-full mb-2 text-sm font-semibold tracking-wide"
+                    size="lg"
+                    className="w-full mb-2 font-semibold tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setProfessionalModalOpen(true)}
                   >
                     Register as Professional
@@ -103,56 +94,54 @@ const App = () => {
 
             {/* Card for Registering a Hospital */}
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              className={`max-w-xs md:max-w-sm lg:max-w-md shadow-lg rounded-lg overflow-hidden ${
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className={`w-full max-w-md shadow-xl rounded-xl overflow-hidden ${
                 isDark
-                  ? "bg-gray-800 border-gray-700"
-                  : "bg-white border-gray-300"
-              } transition-transform duration-300`}
+                  ? "bg-gray-800/90 border-gray-700"
+                  : "bg-white/90 border-gray-300"
+              } transition-all duration-300 hover:shadow-2xl`}
             >
-              <Card>
+              <Card className="border-none bg-transparent">
                 <CardHeader
-                  className={`pb-0 pt-2 px-4 text-center ${
+                  className={`pb-0 pt-4 md:pt-6 px-4 md:px-6 text-center ${
                     isDark ? "text-gray-300" : "text-gray-800"
                   }`}
                 >
                   <p
-                    className={`text-xs uppercase font-bold ${
-                      isDark ? "text-green-400" : "text-green-600"
+                    className={`text-xs uppercase font-bold px-3 py-1 md:px-4 md:py-1.5 rounded-full ${
+                      isDark
+                        ? "bg-green-900/50 text-green-400"
+                        : "bg-green-100 text-green-600"
                     }`}
                   >
-                    For Hospitals
+                    For Healthcare Institutions
                   </p>
-                  <h4
-                    className={`font-bold text-lg mt-1 ${
-                      isDark ? "text-gray-100" : "text-gray-800"
-                    }`}
-                  >
-                    Register Your Hospital
-                  </h4>
                 </CardHeader>
                 <CardBody
-                  className={`py-4 px-6 text-center ${
+                  className={`py-4 md:py-6 px-4 md:px-8 text-center ${
                     isDark ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-4 md:mb-6 overflow-hidden rounded-xl shadow-lg">
                     <Image
                       alt="Hospital Registration"
-                      className="object-cover rounded-lg"
+                      className="object-cover rounded-lg transform hover:scale-105 transition-transform duration-500"
                       src="https://media.istockphoto.com/id/1312706413/photo/modern-hospital-building.webp?b=1&s=170667a&w=0&k=20&c=UipwEz9AKAnDVFeMoexMbHSHlmDnBEQ1uWZ6NtKbfOo="
                       width={270}
                       height={180}
                     />
                   </div>
-                  <p className="mb-4 text-sm leading-relaxed">
-                    Is your hospital looking to join a network of healthcare
-                    providers? Register now to get access to exclusive resources
-                    and connect with other healthcare institutions.
+                  <p className="mb-4 md:mb-8 text-sm leading-relaxed">
+                    Welcome to Medishifts! We help you quickly find skilled
+                    doctors and nurses for short-term needs, ensuring quality
+                    patient care without staffing interruptions. Start here to
+                    meet your facility's immediate demands.
                   </p>
                   <Button
                     color="success"
-                    className="w-full text-white mb-2 text-sm font-semibold tracking-wide"
+                    size="lg"
+                    className="w-full text-white mb-2 font-semibold tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setHospitalModalOpen(true)}
                   >
                     Register as Hospital
@@ -163,7 +152,6 @@ const App = () => {
           </div>
         </div>
 
-        {/* Modals */}
         <HospitalRegistrationModal
           isOpen={isHospitalModalOpen}
           onClose={() => setHospitalModalOpen(false)}
