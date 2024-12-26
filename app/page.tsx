@@ -12,6 +12,7 @@ import { setNotifications } from "@/app/redux/features/notifications-slice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/app/redux/store";
 import pb from "@/utils/pocketbase-connect";
+import HowItWorksSection from "@/components/HowItWorks";
 // type NotificationRecord = {
 //   id: string;
 //   collectionId: string;
@@ -307,6 +308,9 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </section>
+      <section>
+        <HowItWorksSection />
       </section>
 
       {/* <section
