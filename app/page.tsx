@@ -223,15 +223,17 @@ export default function Home() {
             data-aos="fade-up"
             data-aos-delay="100"
           >
-            Discover top medical career opportunities.
+            Connecting Healthcare Talent with Opportunity
           </h1>
           <p
             className="text-lg text-gray-300 mb-8"
             data-aos="fade-up"
             data-aos-delay="200"
           >
-            tailored to your expertise and aspirations, regardless of your
-            experience level
+            Whether you're a healthcare professional seeking flexible,
+            high-paying side jobs or a hospital looking for verified experts to
+            fill short-term roles, MediShifts is here for you. Explore
+            opportunities. Hire with ease.
           </p>
           <a
             className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 py-2 px-6 rounded-full text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg animate-bounce"
