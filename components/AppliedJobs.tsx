@@ -62,6 +62,7 @@ interface AppliedJob {
   is_doctor_rated: number;
   is_hospital_rated: number;
   is_nurse_rated: number;
+  hospital_rating: number;
 }
 
 const JobCard: React.FC<{
@@ -316,6 +317,12 @@ const JobModal: React.FC<{
                 <Briefcase size={16} className="mr-2" />
                 {job.hospital_name}
               </p>
+              <div className="flex">
+                <Star color="#FFD700" fill="#FFD700" />
+                <p className="font-bold dark:text-white text-black sm:text-black  ml-2 sm:ml-0">
+                  {job?.hospital_rating} Overall Rating
+                </p>
+              </div>
             </ModalHeader>
             <ModalBody>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -564,7 +571,7 @@ const AppliedJobs: React.FC = () => {
         isDark ? "text-white" : "text-gray-800"
       } min-h-screen p-8`}
     >
-      <h1 className="text-3xl font-bold mb-6">Applied Jobs</h1>
+      <h1 className="text-3xl dark:text-white font-bold mb-6">Applied Jobs</h1>
       {appliedJobs.length === 0 ? (
         <p className="text-center text-xl">No jobs found.</p>
       ) : (

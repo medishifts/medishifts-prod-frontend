@@ -17,6 +17,7 @@ import {
 import pb from "@/utils/pocketbase-connect";
 import { ConfirmationModal } from "./ConfirmationModal.tsx";
 import { toast } from "react-hot-toast";
+import { Star } from "lucide-react";
 
 // Define the color map with valid values
 const statusColorMap: Record<string, ChipProps["color"]> = {
@@ -43,6 +44,7 @@ type User = {
   registration_certificate: string;
   mobile_verified: boolean;
   verified: boolean;
+  avg_rating: number;
 };
 
 export default function ApproveProfessionals() {
@@ -85,6 +87,7 @@ export default function ApproveProfessionals() {
           registration_certificate: item.registration_certificate,
           mobile_verified: item.mobile_verified,
           verified: item.verified,
+          avg_rating: item.average_rating,
         }));
 
         setUsers(usersData);
@@ -186,6 +189,7 @@ export default function ApproveProfessionals() {
         registration_certificate: user.registration_certificate,
         mobile_verified: user.mobile_verified,
         verified: user.verified,
+        avg_rating: user.average_rating,
       });
       setIsUserDetailsModalOpen(true);
     } catch (error) {
@@ -195,9 +199,7 @@ export default function ApproveProfessionals() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        View Approval Requests by Hospitals
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">View Hospitals</h1>
       <div className="mb-4">
         <Input
           isClearable
@@ -343,6 +345,12 @@ export default function ApproveProfessionals() {
                 <h3 className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100">
                   {selectedUser.name}
                 </h3>
+                <div className="flex flex-row items-center justify-center md:justify-start ">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black  ml-2 sm:ml-0">
+                    {selectedUser?.avg_rating} Overall Rating
+                  </p>
+                </div>
                 <p className="text-lg text-gray-500 dark:text-gray-400">
                   {selectedUser.role}
                 </p>

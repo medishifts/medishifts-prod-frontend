@@ -16,7 +16,14 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
+  Card,
+  CardBody,
+  Divider,
+  Input,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
+import { Calendar, Filter } from "lucide-react";
 import pb from "@/utils/pocketbase-connect";
 
 type Payment = {
@@ -61,6 +68,13 @@ type Payment = {
   };
 };
 
+const statusOptions = [
+  { label: "All", value: "all" },
+  { label: "Success", value: "SUCCESS" },
+  { label: "Pending", value: "PENDING" },
+  { label: "Failed", value: "FAILED" },
+];
+
 export default function PaymentHistoryPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,20 +84,33 @@ export default function PaymentHistoryPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const perPage = 10;
 
   useEffect(() => {
     fetchPayments(page);
-  }, [page]);
+  }, [page, statusFilter, dateRange]);
 
   const fetchPayments = async (pageNumber: number) => {
     setLoading(true);
     setError(null);
     try {
+      let filter = "";
+      if (statusFilter !== "all") {
+        filter += `status = "${statusFilter}"`;
+      }
+      if (dateRange.from && dateRange.to) {
+        filter += filter
+          ? ` && created >= "${dateRange.from}" && created <= "${dateRange.to}"`
+          : `created >= "${dateRange.from}" && created <= "${dateRange.to}"`;
+      }
+
       const resultList = await pb
         .collection("payments_reference")
         .getList(pageNumber, perPage, {
           sort: "-created",
+          filter: filter,
         });
       setPayments(resultList.items as unknown as Payment[]);
       setTotalPages(resultList.totalPages);
@@ -101,10 +128,40 @@ export default function PaymentHistoryPage() {
     onOpen();
   };
 
-  if (loading) {
+  const renderDetailSection = (title: string, content: React.ReactNode) => (
+    <Card className="w-full">
+      <CardBody>
+        <h3 className="text-lg font-semibold mb-3">{title}</h3>
+        <Divider className="my-3" />
+        {content}
+      </CardBody>
+    </Card>
+  );
+
+  const renderDetailsRow = (label: string, value: React.ReactNode) => (
+    <div className="flex justify-between py-2">
+      <span className="text-gray-600">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+
+  const getStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "SUCCESS":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "FAILED":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
+
+  if (loading && page === 1) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Spinner label="Loading payment data..." />
+        <Spinner size="lg" label="Loading payment data..." />
       </div>
     );
   }
@@ -113,210 +170,258 @@ export default function PaymentHistoryPage() {
     return (
       <div className="p-4 text-center">
         <h1 className="text-2xl font-bold mb-4">Error</h1>
-        <p className="text-red-500">{error}</p>
+        <p className="text-danger">{error}</p>
+        <Button
+          color="primary"
+          className="mt-4"
+          onPress={() => fetchPayments(page)}
+        >
+          Retry
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Payment History</h1>
-      <Table aria-label="Payment history table">
-        <TableHeader>
-          <TableColumn>ID</TableColumn>
-          <TableColumn>Date</TableColumn>
-          <TableColumn>Amount</TableColumn>
-          <TableColumn>Type</TableColumn>
-          <TableColumn>Status</TableColumn>
-          <TableColumn>Payer</TableColumn>
-          <TableColumn>Actions</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {payments.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.id}</TableCell>
-              <TableCell>
-                {new Date(item.created).toLocaleDateString()}
-              </TableCell>
-              <TableCell>₹{item.transaction_amount.toFixed(2)}</TableCell>
-              <TableCell>{item.type}</TableCell>
-              <TableCell>
-                <Chip
-                  color={item.status === "SUCCESS" ? "success" : "warning"}
-                  variant="flat"
-                >
-                  {item.status}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <div>{item.payer_email}</div>
-                <div>{item.payer_mobile}</div>
-              </TableCell>
-              <TableCell>
-                <Button size="sm" onPress={() => handleViewDetails(item)}>
-                  View Details
-                </Button>
-              </TableCell>
-            </TableRow>
+    <div className="p-4 space-y-4">
+      <h1 className="text-2xl font-bold">Payment History</h1>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Select
+          placeholder="Status"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          startContent={<Filter className="w-4 h-4" />}
+        >
+          {statusOptions.map((status) => (
+            <SelectItem key={status.value} value={status.value}>
+              {status.label}
+            </SelectItem>
           ))}
-        </TableBody>
-      </Table>
-      <div className="flex justify-center mt-4">
+        </Select>
+
+        <Input
+          type="date"
+          placeholder="From"
+          value={dateRange.from}
+          onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+          startContent={<Calendar className="w-4 h-4" />}
+        />
+        <Input
+          type="date"
+          placeholder="To"
+          value={dateRange.to}
+          onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+          startContent={<Calendar className="w-4 h-4" />}
+        />
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardBody>
+          <Table
+            aria-label="Payment history table"
+            classNames={{
+              wrapper: "min-h-[400px]",
+            }}
+          >
+            <TableHeader>
+              <TableColumn>ID</TableColumn>
+              <TableColumn>DATE</TableColumn>
+              <TableColumn>AMOUNT</TableColumn>
+              <TableColumn>TYPE</TableColumn>
+              <TableColumn>STATUS</TableColumn>
+              <TableColumn>PAYER</TableColumn>
+              <TableColumn>ACTIONS</TableColumn>
+            </TableHeader>
+            <TableBody
+              emptyContent={loading ? "Loading..." : "No payments found"}
+              isLoading={loading}
+            >
+              {payments.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>
+                    {new Date(item.created).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>₹{item.transaction_amount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat">
+                      {item.type}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      color={getStatusColor(item.status)}
+                      variant="flat"
+                      size="sm"
+                    >
+                      {item.status}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-small">{item.payer_email}</span>
+                      <span className="text-tiny text-default-500">
+                        {item.payer_mobile}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      onPress={() => handleViewDetails(item)}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardBody>
+      </Card>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center">
+        <span className="text-small text-default-500">
+          Total {totalItems} payments
+        </span>
         <Pagination
           total={totalPages}
           initialPage={1}
           page={page}
-          onChange={(page) => setPage(page)}
+          onChange={setPage}
+          showControls
+          size="sm"
         />
       </div>
-      <div className="text-center mt-2">Total Items: {totalItems}</div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
+      {/* Details Modal */}
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        size="3xl"
+        scrollBehavior="inside"
+      >
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Payment Details
+                <h2 className="text-xl">Payment Details</h2>
+                <p className="text-small text-default-500">
+                  ID: {selectedPayment?.id}
+                </p>
               </ModalHeader>
-              <ModalBody>
+
+              <ModalBody className="gap-4">
                 {selectedPayment && (
-                  <div className="space-y-4 p-4">
-                    {/* Payment Info */}
-                    <div className="bg-gray-50 p-4 rounded-lg shadow">
-                      <h2 className="text-xl font-bold mb-2">
-                        Payment Details
-                      </h2>
-                      <p>
-                        <strong>ID:</strong> {selectedPayment.id}
-                      </p>
-                      <p>
-                        <strong>Created:</strong>{" "}
-                        {new Date(selectedPayment.created).toLocaleString()}
-                      </p>
-                      <p>
-                        <strong>Updated:</strong>{" "}
-                        {new Date(selectedPayment.updated).toLocaleString()}
-                      </p>
-                      <p>
-                        <strong>Amount:</strong> ₹
-                        {selectedPayment.transaction_amount.toFixed(2)}
-                      </p>
-                      <p>
-                        <strong>Type:</strong> {selectedPayment.type}
-                      </p>
-                      <p>
-                        <strong>Status:</strong>{" "}
-                        <span
-                          className={`text-${
-                            selectedPayment.status === "Paid" ? "green" : "red"
-                          }-500`}
-                        >
-                          {selectedPayment.status}
-                        </span>
-                      </p>
-                      <p>
-                        <strong>Payer Email:</strong>{" "}
-                        {selectedPayment.payer_email}
-                      </p>
-                      <p>
-                        <strong>Payer Mobile:</strong>{" "}
-                        {selectedPayment.payer_mobile}
-                      </p>
-                      <p>
-                        <strong>Remark:</strong> {selectedPayment.remark}
-                      </p>
-                      <p>
-                        <strong>Error Message:</strong>{" "}
-                        {selectedPayment.error_message || "None"}
-                      </p>
-                    </div>
+                  <>
+                    {renderDetailSection(
+                      "Transaction Information",
+                      <>
+                        {renderDetailsRow(
+                          "Created",
+                          new Date(selectedPayment.created).toLocaleString()
+                        )}
+                        {renderDetailsRow(
+                          "Amount",
+                          `₹${selectedPayment.transaction_amount.toFixed(2)}`
+                        )}
+                        {renderDetailsRow("Type", selectedPayment.type)}
+                        {renderDetailsRow(
+                          "Status",
+                          <Chip
+                            color={getStatusColor(selectedPayment.status)}
+                            variant="flat"
+                            size="sm"
+                          >
+                            {selectedPayment.status}
+                          </Chip>
+                        )}
+                      </>
+                    )}
 
-                    {/* Payment Details */}
-                    <div className="bg-gray-50 p-4 rounded-lg shadow">
-                      <h3 className="text-lg font-semibold mb-2">Details</h3>
-                      <p>
-                        <strong>Enrollment ID:</strong>{" "}
-                        {selectedPayment.details?.enrollment_id || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Final Payable Amount:</strong> ₹
-                        {selectedPayment.details?.final_payable_amount || 0}
-                      </p>
-                      <p>
-                        <strong>Platform Commission:</strong> ₹
-                        {selectedPayment.details?.platform_commission || 0}
-                      </p>
-                      <p>
-                        <strong>Salary:</strong> ₹
-                        {selectedPayment.details?.salary || 0}
-                      </p>
-                    </div>
+                    {renderDetailSection(
+                      "Payer Information",
+                      <>
+                        {renderDetailsRow("Email", selectedPayment.payer_email)}
+                        {renderDetailsRow(
+                          "Mobile",
+                          selectedPayment.payer_mobile
+                        )}
+                        {selectedPayment.remark &&
+                          renderDetailsRow("Remark", selectedPayment.remark)}
+                      </>
+                    )}
 
-                    {/* Gateway Response */}
-                    <div className="bg-gray-50 p-4 rounded-lg shadow">
-                      <h3 className="text-lg font-semibold mb-2">
-                        Gateway Response
-                      </h3>
-                      <p>
-                        <strong>Description:</strong>{" "}
-                        {selectedPayment.gateway_response?.description || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Short URL:</strong>{" "}
-                        {selectedPayment.gateway_response?.short_url || "N/A"}
-                      </p>
-                    </div>
+                    {renderDetailSection(
+                      "Payment Breakdown",
+                      <>
+                        {renderDetailsRow(
+                          "Final Payable Amount",
+                          `₹${
+                            selectedPayment.details?.final_payable_amount || 0
+                          }`
+                        )}
+                        {renderDetailsRow(
+                          "Platform Commission",
+                          `₹${
+                            selectedPayment.details?.platform_commission || 0
+                          }`
+                        )}
+                        {renderDetailsRow(
+                          "Salary",
+                          `₹${selectedPayment.details?.salary || 0}`
+                        )}
+                        {renderDetailsRow(
+                          "Enrollment ID",
+                          selectedPayment.details?.enrollment_id || "N/A"
+                        )}
+                      </>
+                    )}
 
-                    {/* Notes */}
-                    <div className="bg-gray-50 p-4 rounded-lg shadow">
-                      <h3 className="text-lg font-semibold mb-2">Notes</h3>
-                      <p>
-                        <strong>Initiator:</strong>{" "}
-                        {selectedPayment.gateway_response?.notes
-                          ?.initiator_name || "N/A"}{" "}
-                        (
-                        {selectedPayment.gateway_response?.notes?.initiator ||
-                          "N/A"}
-                        )
-                      </p>
-                      <p>
-                        <strong>Initiator Email:</strong>{" "}
-                        {selectedPayment.gateway_response?.notes
-                          ?.initiator_email || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Initiator Mobile:</strong>{" "}
-                        {selectedPayment.gateway_response?.notes
-                          ?.initiator_mobile || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Policy Name:</strong>{" "}
-                        {selectedPayment.gateway_response?.notes?.policy_name ||
-                          "N/A"}
-                      </p>
-                    </div>
-
-                    {/* Webhook Response */}
-                    <div className="bg-gray-50 p-4 rounded-lg shadow">
-                      <h3 className="text-lg font-semibold mb-2">
-                        Webhook Response
-                      </h3>
-                      <p>
-                        <strong>UPI Transaction ID:</strong>{" "}
-                        {selectedPayment.webhook_response?.acquirer_data
-                          ?.upi_transaction_id || "N/A"}
-                      </p>
-                      <p>
-                        <strong>VPA:</strong>{" "}
-                        {selectedPayment.webhook_response?.vpa || "N/A"}
-                      </p>
-                    </div>
-                  </div>
+                    {renderDetailSection(
+                      "Gateway Information",
+                      <>
+                        {renderDetailsRow(
+                          "Description",
+                          selectedPayment.gateway_response?.description || "N/A"
+                        )}
+                        {renderDetailsRow(
+                          "Policy Name",
+                          selectedPayment.gateway_response?.notes
+                            ?.policy_name || "N/A"
+                        )}
+                        {renderDetailsRow(
+                          "Initiator",
+                          `${
+                            selectedPayment.gateway_response?.notes
+                              ?.initiator_name || "N/A"
+                          } (${
+                            selectedPayment.gateway_response?.notes
+                              ?.initiator || "N/A"
+                          })`
+                        )}
+                        {renderDetailsRow(
+                          "UPI Transaction ID",
+                          selectedPayment.webhook_response?.acquirer_data
+                            ?.upi_transaction_id || "N/A"
+                        )}
+                        {renderDetailsRow(
+                          "VPA",
+                          selectedPayment.webhook_response?.vpa || "N/A"
+                        )}
+                      </>
+                    )}
+                  </>
                 )}
               </ModalBody>
 
               <ModalFooter>
-                <Button color="primary" onPress={onClose}>
+                <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
               </ModalFooter>

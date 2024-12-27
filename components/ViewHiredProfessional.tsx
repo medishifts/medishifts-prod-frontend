@@ -436,6 +436,12 @@ const ViewHiredProfessionals: React.FC<ViewApplicantsModalProps> = ({
                 <h3 className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100">
                   {selectedUser.name}
                 </h3>
+                <p className="flex flex-row items-center justify-center md:justify-start">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black  ml-2 sm:ml-0">
+                    {selectedUser?.average_rating} Overall Rating
+                  </p>
+                </p>
                 <p className="text-lg text-gray-500 dark:text-gray-400">
                   {selectedUser.role}
                 </p>

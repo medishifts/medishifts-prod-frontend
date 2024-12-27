@@ -17,6 +17,7 @@ import {
 import pb from "@/utils/pocketbase-connect";
 import { toast } from "react-hot-toast";
 import UserQualifications from "@/components/UserQualifications";
+import { Star } from "lucide-react";
 
 // Define the color map with valid values
 const statusColorMap: Record<string, ChipProps["color"]> = {
@@ -48,6 +49,7 @@ type User = {
   hospital_document: string;
   experience: string;
   experienceYears: string;
+  average_rating: number;
 };
 
 export default function ApproveProfessionals() {
@@ -95,6 +97,7 @@ export default function ApproveProfessionals() {
           mobile_verified: item.mobile_verified,
           verified: item.verified,
           hospital_document: `${backendApi}/api/files/${item.collectionId}/${item.id}/${item.hospital_document}`,
+          average_rating: item.average_rating,
         }));
 
         setUsers(usersData);
@@ -133,6 +136,7 @@ export default function ApproveProfessionals() {
         hospital_document: user.hospital_document,
         experience: user.experience,
         experienceYears: user.experienceYears,
+        average_rating: user.average_rating,
       });
       setIsUserDetailsModalOpen(true);
     } catch (error) {
@@ -228,7 +232,6 @@ export default function ApproveProfessionals() {
           <TableColumn>Mobile</TableColumn>
           <TableColumn>Reg. No</TableColumn>
           <TableColumn>Council</TableColumn>
-          <TableColumn>Degrees</TableColumn>
           <TableColumn>Certificates</TableColumn>
           <TableColumn>Actions</TableColumn>
         </TableHeader>
@@ -271,7 +274,6 @@ export default function ApproveProfessionals() {
               <TableCell>{item.mobile}</TableCell>
               <TableCell>{item.registrationNumber}</TableCell>
               <TableCell>{item.selectedCouncil}</TableCell>
-              <TableCell>{item.selectedDegrees}</TableCell>
               <TableCell>
                 {item.registrationCertificate && (
                   <a
@@ -340,6 +342,12 @@ export default function ApproveProfessionals() {
                 <h3 className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100">
                   {selectedUser.name}
                 </h3>
+                <div className="flex flex-row items-center justify-center md:justify-start ">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black  ml-2 sm:ml-0">
+                    {selectedUser?.average_rating} Overall Rating
+                  </p>
+                </div>
                 <p className="text-lg text-gray-500 dark:text-gray-400">
                   {selectedUser.role}
                 </p>

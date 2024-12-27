@@ -16,9 +16,12 @@ import {
   ModalBody,
   ModalFooter,
 } from "@nextui-org/react";
+import { Rating } from "@smastrom/react-rating";
+import { Star } from "lucide-react";
 
 type User = {
   id: string;
+  avg_rating: number;
   name: string;
   profile: string;
   role: string;
@@ -277,6 +280,7 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
         hospital_document: user.hospital_document,
         experience: user.experience,
         experienceYears: user.experienceYears,
+        avg_rating: user.average_rating,
       });
       setIsUserDetailsModalOpen(true);
     } catch (error) {
@@ -462,9 +466,13 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
                     <h3 className="text-2xl md:text-3xl font-semibold">
                       {selectedUser?.name}
                     </h3>
-                    <p className="text-lg text-gray-500 dark:text-gray-400">
-                      {selectedUser?.role}
+                    <p className="flex flex-row items-center justify-center md:justify-start ">
+                      <Star color="#FFD700" fill="#FFD700" />
+                      <p className="font-bold dark:text-white text-black sm:text-black  ">
+                        {selectedUser?.avg_rating} Overall Rating
+                      </p>
                     </p>
+
                     <p>
                       <strong>Experience: </strong>
                       {selectedUser?.experienceYears
