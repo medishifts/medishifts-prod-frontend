@@ -24,6 +24,7 @@ import {
   BookOpen,
   Stethoscope,
   Calendar,
+  Star,
 } from "lucide-react";
 import { stateCityData } from "../stateCities";
 const pb = new PocketBase(process.env.NEXT_PUBLIC_BACKEND_API);
@@ -47,6 +48,7 @@ type Job = {
   created: string;
   hospital_city: string;
   hospital_state: string;
+  average_rating: number;
 };
 
 const mapRecordToJob = (record: RecordModel): Job => {
@@ -69,6 +71,7 @@ const mapRecordToJob = (record: RecordModel): Job => {
     created: record.created || "",
     hospital_city: record.city || "",
     hospital_state: record.state || "",
+    average_rating: record.average_rating || 0,
   };
 };
 const DEGREE_OPTIONS = {
@@ -664,6 +667,12 @@ export default function JobsPage() {
                   <Briefcase size={18} className="mr-2" />
                   {selectedJob?.hospital_name}
                 </p>
+                <div className="flex">
+                  <Star color="#FFD700" fill="#FFD700" />
+                  <p className="font-bold dark:text-white text-black sm:text-black  ml-2 sm:ml-0">
+                    {selectedJob?.average_rating} Overall Rating
+                  </p>
+                </div>
               </ModalHeader>
               <ModalBody>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
