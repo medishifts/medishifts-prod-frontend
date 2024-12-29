@@ -11,7 +11,17 @@ import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "Medishifts.in",
-  description: "Job portal for Medical Professionals Doctors , Nurses",
+  description: "Job portal for Medical Professionals - Doctors, Nurses",
+  icons: {
+    icon: [
+      { rel: "icon", url: "/icons/favicon-16x16.png", sizes: "16x16" },
+      { rel: "icon", url: "/icons/favicon-32x32.png", sizes: "32x32" },
+      { rel: "icon", url: "/icons/favicon.ico" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
+  manifest: "/icons/site.webmanifest",
+  // themeColor: "#ffffff",
 };
 
 export const viewport: Viewport = {
