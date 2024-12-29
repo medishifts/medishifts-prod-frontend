@@ -5,10 +5,11 @@ const Footer: React.FC = () => (
     <div className="container mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <div className="md:col-span-2">
         <a href="#" className="inline-flex items-center mb-3">
-          <svg viewBox="0 0 100 100" className="h-8 w-8">
-            <circle cx="50" cy="50" r="40" fill="#4051B5" />
-            <path d="M50 30 L70 70 L30 70 Z" fill="#FFFFFF" />
-          </svg>
+          <img
+            src="/logo.png"
+            alt="Medishifts Logo"
+            className="h-8 w-8 object-contain"
+          />
           <span className="ml-2 text-xl font-bold tracking-tight text-white dark:text-gray-100">
             Medishifts.in
           </span>
@@ -56,7 +57,7 @@ const Footer: React.FC = () => (
             <span>WhatsApp</span>
           </a>
           <a
-            href="mailto:medishifts@gmail.com"
+            href="mailto:support@medishifts.in"
             className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
           >
             <Mail size={24} />

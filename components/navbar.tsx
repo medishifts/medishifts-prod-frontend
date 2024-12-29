@@ -263,8 +263,13 @@ export const Navbar = () => {
               className="flex justify-start items-center gap-1"
               href="/"
             >
-              <Logo />
-              <p className="font-bold text-inherit">Medishifts.in</p>
+              <img
+                src="/logo.png"
+                alt="Medishifts Logo"
+                className="h-8 w-8 object-contain"
+              />
+
+              <p className="font-bold text-inherit">Medishifts</p>
             </NextLink>
           </NavbarBrand>
         </NavbarContent>

@@ -518,7 +518,10 @@ const AppliedJobs: React.FC = () => {
       try {
         const resultList = await pb
           .collection("view_enrollments")
-          .getList<AppliedJob>(1, 50);
+          .getList<AppliedJob>(1, 50, {
+            sort: "-created",
+          });
+
         setAppliedJobs(resultList.items);
         console.log(resultList);
       } catch (error) {
@@ -562,7 +565,11 @@ const AppliedJobs: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="text-center text-2xl mt-8">Loading...</div>;
+    return (
+      <div className="flex h-screen justify-center items-center">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
