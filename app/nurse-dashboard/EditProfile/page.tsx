@@ -957,7 +957,7 @@ export default function EditProfileComponent(props: any) {
                     value={registrationNumber}
                     onChange={(e) => setRegistrationNumber(e.target.value)}
                     className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter registration number"
+                    placeholder="Enter Reg Number Without Council"
                     required
                   />
                 </div>
@@ -1417,7 +1417,7 @@ export default function EditProfileComponent(props: any) {
                         fieldErrors.registrationNumber ? "border-red-500" : ""
                       }`}
                       // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                      placeholder="Enter registration number"
+                      placeholder="Enter Reg Number Without Council"
                       required
                     />
                     {fieldErrors.registrationNumber && (

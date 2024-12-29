@@ -53,6 +53,7 @@ const HospitalProfilePage = (props: any) => {
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   useEffect(() => {
     const fetchProfileData = async () => {
       setIsLoading(true);
@@ -93,6 +94,9 @@ const HospitalProfilePage = (props: any) => {
         };
 
         setProfileData(mappedProfileData);
+        if (!record.isFirstTimeCompleted) {
+          setShowFirstTimeModal(true);
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       } finally {
@@ -126,6 +130,9 @@ const HospitalProfilePage = (props: any) => {
     } finally {
       setResetLoading(false);
     }
+  };
+  const handleCompleteProfile = () => {
+    window.location.href = "/hospital-dashboard?page=edit-profile";
   };
   return (
     <>
@@ -321,6 +328,47 @@ const HospitalProfilePage = (props: any) => {
           </Modal>
         </div>
       )}
+      <Modal
+        isOpen={showFirstTimeModal}
+        onClose={() => setShowFirstTimeModal(false)}
+        isDismissable={false}
+        // hideCloseButton
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            Complete Your Profile
+          </ModalHeader>
+          <ModalBody>
+            <div className="text-center space-y-4">
+              <div className="text-5xl mb-4">🏥</div>
+              <h3 className="text-xl font-semibold">
+                Start Hiring Healthcare Professionals
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                We noticed your profile isn't complete yet. Complete your
+                hospital profile to post jobs and find qualified medical staff.
+              </p>
+              <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg">
+                <p className="text-sm text-yellow-700 dark:text-yellow-200">
+                  ⚠️ Important: Hospital verification is required before you can
+                  post jobs or access candidate profiles.
+                </p>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="primary"
+              variant="shadow"
+              size="lg"
+              className="w-full"
+              onClick={handleCompleteProfile}
+            >
+              Complete My Profile
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

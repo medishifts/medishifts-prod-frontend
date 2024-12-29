@@ -23,7 +23,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Spinner,
 } from "@nextui-org/react";
+
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
 import { Star } from "lucide-react";
@@ -51,6 +53,7 @@ interface ProfileData {
   is_document_uploaded: boolean;
   isFirstTimeCompleted: boolean;
   registrationNumber: string;
+
   average_rating: number;
 }
 
@@ -64,6 +67,8 @@ const ProfileDoctor = (props: any) => {
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [IsLoading, setIsLoading] = useState(true);
+
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const education = useAppSelector((state) => state.educationReducer.records);
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -114,6 +119,9 @@ const ProfileDoctor = (props: any) => {
         };
 
         setProfileData(mappedProfileData);
+        if (!record.isFirstTimeCompleted) {
+          setShowFirstTimeModal(true);
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error);
       } finally {
@@ -169,12 +177,15 @@ const ProfileDoctor = (props: any) => {
   educationDetails.specialization = educationDetails.specialization.join(", ");
 
   console.log("Education Details ", educationDetails);
+  const handleCompleteProfile = () => {
+    window.location.href = "/doctor-dashboard?page=edit-profile";
+  };
 
   return (
     <>
       {IsLoading ? (
         <div className="flex h-screen justify-center items-center">
-          <Loader />
+          <Spinner />
         </div>
       ) : (
         <div className="max-w-9xl mx-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-2xl rounded-xl overflow-hidden  font-sans">
@@ -473,6 +484,49 @@ const ProfileDoctor = (props: any) => {
           </Modal>
         </div>
       )}
+      <Modal
+        isOpen={showFirstTimeModal}
+        onClose={() => setShowFirstTimeModal(false)}
+        isDismissable={false}
+        // hideCloseButton
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            Complete Your Profile
+          </ModalHeader>
+          <ModalBody>
+            <div className="text-center space-y-4">
+              <div className="text-5xl mb-4">👨‍⚕️</div>
+              <h3 className="text-xl font-semibold">
+                Start Your Job Search Journey
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                We noticed your profile isn't complete yet. 'Complete your
+                profile to apply for doctor positions at top healthcare
+                facilities.
+              </p>
+              <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg">
+                <p className="text-sm text-yellow-700 dark:text-yellow-200">
+                  ⚠️ Important: You need to complete your profile to apply for
+                  doctor positions. This includes verifying your medical
+                  registration and uploading required certificates.
+                </p>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="primary"
+              variant="shadow"
+              size="lg"
+              className="w-full"
+              onClick={handleCompleteProfile}
+            >
+              Complete My Profile
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
