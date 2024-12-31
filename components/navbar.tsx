@@ -221,16 +221,22 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = pb
-      .collection("notifications")
-      .subscribe("*", async function (e) {
-        await getNoti();
-        // if (e.action === "create") {
-        //   toast.success("New notification Received", {
-        //     icon: "🔔",
-        //   });
-        // }
-      });
+try {
+  const unsubscribe = pb
+    .collection("notifications")
+    .subscribe("*", async function (e) {
+      await getNoti();
+      // if (e.action === "create") {
+      //   toast.success("New notification Received", {
+      //     icon: "🔔",
+      //   });
+      // }
+    });
+} catch (error) {
+  console.error("Error fetching notifications:", error);
+}
+
+   
 
     return () => {
       pb.collection("notifications").unsubscribe();

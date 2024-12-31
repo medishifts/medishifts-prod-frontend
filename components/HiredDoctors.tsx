@@ -20,6 +20,7 @@ import {
   ModalFooter,
   ModalHeader,
   ScrollShadow,
+  Spinner,
 } from "@nextui-org/react";
 type Job = {
   [x: string]: string | number | Date;
@@ -120,8 +121,8 @@ const HiredDoctors = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div>Loading...</div>
+          <div className="flex h-screen justify-center items-center">
+            <Spinner />
           </div>
         ) : jobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
