@@ -14,6 +14,7 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
+  Spinner,
 } from "@nextui-org/react";
 import {
   X,
@@ -134,64 +135,63 @@ export default function JobsPage() {
     }
     return DEGREE_OPTIONS.doctor;
   };
+  const fetchJobs = async () => {
+    pb.autoCancellation(false);
+    setLoading(true);
+    try {
+      let queryParams: Record<string, any> = {
+        page: currentPage,
+        perPage: jobsPerPage,
+        sort: "-created",
+      };
+
+      // Initialize filter array
+      let filters = [];
+      filters.push(`hire~"${userRole}"`);
+      // Fiter for city
+      if (filter.city !== "all") {
+        filters.push(`city="${filter.city}"`);
+      }
+
+      // Add search query
+      if (searchTerm) {
+        filters.push(`position~"${searchTerm}"`);
+      }
+      if (filter.degree !== "all") {
+        filters.push(`degree="${filter.degree}"`);
+      }
+      // Add filter for user role (existing filter)
+
+      if (filters.length > 0) {
+        queryParams.filter = filters.join("&&");
+      }
+
+      // Add sorting query
+      if (filter.salary === "lowToHigh") {
+        queryParams.sort = "+salary";
+      } else if (filter.salary === "highToLow") {
+        queryParams.sort = "-salary";
+      }
+
+      const resultList = await pb
+        .collection("view_jobs")
+        .getList(currentPage, jobsPerPage, queryParams);
+
+      // Map RecordModel[] to Job[]
+      const mappedJobs: Job[] = resultList.items.map(mapRecordToJob);
+
+      setJobs(mappedJobs);
+      setTotalPages(Math.ceil(resultList.totalItems / jobsPerPage));
+      console.log(resultList);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast.error("Failed to fetch jobs. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      pb.autoCancellation(false);
-      setLoading(true);
-      try {
-        let queryParams: Record<string, any> = {
-          page: currentPage,
-          perPage: jobsPerPage,
-          sort: "-created",
-        };
-
-        // Initialize filter array
-        let filters = [];
-        filters.push(`hire~"${userRole}"`);
-        // Fiter for city
-        if (filter.city !== "all") {
-          filters.push(`city="${filter.city}"`);
-        }
-
-        // Add search query
-        if (searchTerm) {
-          filters.push(`position~"${searchTerm}"`);
-        }
-        if (filter.degree !== "all") {
-          filters.push(`degree="${filter.degree}"`);
-        }
-        // Add filter for user role (existing filter)
-
-        if (filters.length > 0) {
-          queryParams.filter = filters.join("&&");
-        }
-
-        // Add sorting query
-        if (filter.salary === "lowToHigh") {
-          queryParams.sort = "+salary";
-        } else if (filter.salary === "highToLow") {
-          queryParams.sort = "-salary";
-        }
-
-        const resultList = await pb
-          .collection("view_jobs")
-          .getList(currentPage, jobsPerPage, queryParams);
-
-        // Map RecordModel[] to Job[]
-        const mappedJobs: Job[] = resultList.items.map(mapRecordToJob);
-
-        setJobs(mappedJobs);
-        setTotalPages(Math.ceil(resultList.totalItems / jobsPerPage));
-        console.log(resultList);
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-        toast.error("Failed to fetch jobs. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchJobs();
   }, [currentPage, filter, searchTerm, userRole]);
 
@@ -448,7 +448,7 @@ export default function JobsPage() {
             </h2>
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <Loader />
+                <Spinner />
               </div>
             ) : jobs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
