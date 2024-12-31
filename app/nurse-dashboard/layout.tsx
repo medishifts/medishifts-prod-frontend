@@ -126,20 +126,26 @@ const DoctorDashboardLayout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = pb
-      .collection("notifications")
-      .subscribe("*", async function (e) {
-        console.log("Notifications ", e.record);
-        if (e.action === "create") {
-          await getNoti();
-          // toast.success("New notification Received", {
-          //   icon: "🔔",
-          // });
-          setNotifications(e.record);
-        } else {
-          console.log(`Action type: ${e.action}`);
-        }
-      });
+
+    try {
+      const unsubscribe = pb
+        .collection("notifications")
+        .subscribe("*", async function (e) {
+          console.log("Notifications ", e.record);
+          if (e.action === "create") {
+            await getNoti();
+            // toast.success("New notification Received", {
+            //   icon: "🔔",
+            // });
+            setNotifications(e.record);
+          } else {
+            console.log(`Action type: ${e.action}`);
+          }
+        });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+    
 
     return () => {
       pb.collection("notifications").unsubscribe();
