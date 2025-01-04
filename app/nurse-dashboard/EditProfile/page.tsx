@@ -827,7 +827,7 @@ export default function EditProfileComponent(props: any) {
                       value={mobile}
                       onChange={(e) => setMobile(e.target.value)}
                       className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter contact number"
+                      placeholder="Enter your whatsapp number"
                     />
 
                     <button
@@ -1152,7 +1152,7 @@ export default function EditProfileComponent(props: any) {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-4 sm:mb-6 dark:text-white text-blue-800 text-center">
               Edit Professional profile
             </h1>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6">
               {/* profile Photo */}
               <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-gray-300 bg-gray-100">
@@ -1200,66 +1200,6 @@ export default function EditProfileComponent(props: any) {
                 )}
               </div>
 
-              {/* Registration Certificate */}
-              <div>
-                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Upload Registration Certificate
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <input
-                    required
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setRegCert(e.target.files?.[0] || null)}
-                    className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
-                  />
-                  <button
-                    onClick={uploadRegistrationCertificate}
-                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    disabled={isRegCertUploaded}
-                  >
-                    {isRegCertUploaded
-                      ? "Registration Certificate Uploaded"
-                      : "Upload Registration Certificate"}
-                  </button>
-                  {fieldErrors.regCert && (
-                    <p className="text-red-500 mt-1">
-                      Registration certificate is required
-                    </p>
-                  )}
-                </div>
-
-                {/* Degree Certificate */}
-                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Upload Degree Certificate
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <input
-                    required
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
-                    className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
-                  />
-                  <button
-                    onClick={uploadDegreeCertificate}
-                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    disabled={isDegreeCertUploaded}
-                  >
-                    {isDegreeCertUploaded
-                      ? "Degree Certificate Uploaded"
-                      : "Upload Degree Certificate"}
-                  </button>
-                  {fieldErrors.degreeCert && (
-                    <p className="text-red-500 mt-1">
-                      Degree certificate is required
-                    </p>
-                  )}
-                </div>
-              </div>
-
               <div className="col-span-1 lg:col-span-2 space-y-4 sm:space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {/* Date of Birth */}
@@ -1288,7 +1228,7 @@ export default function EditProfileComponent(props: any) {
                       "mobile",
                       mobile,
                       (e) => setMobile(e.target.value),
-                      "Enter contact number"
+                      "Enter your whatsapp number"
                     )}
                     <button
                       onClick={handleSendOtp}
@@ -1593,7 +1533,67 @@ export default function EditProfileComponent(props: any) {
                   onDelete={handleDelete}
                 />
               </div>
+              {/* Registration Certificate */}
+              <div>
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Registration Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setRegCert(e.target.files?.[0] || null)}
+                    className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadRegistrationCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isRegCertUploaded}
+                  >
+                    {isRegCertUploaded
+                      ? "Registration Certificate Uploaded"
+                      : "Upload Registration Certificate"}
+                  </button>
+                  {fieldErrors.regCert && (
+                    <p className="text-red-500 mt-1">
+                      Registration certificate is required
+                    </p>
+                  )}
+                </div>
+
+                {/* Degree Certificate */}
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Degree Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
+                    className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadDegreeCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isDegreeCertUploaded}
+                  >
+                    {isDegreeCertUploaded
+                      ? "Degree Certificate Uploaded"
+                      : "Upload Degree Certificate"}
+                  </button>
+                  {fieldErrors.degreeCert && (
+                    <p className="text-red-500 mt-1">
+                      Degree certificate is required
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
+
             <div className="mt-8 flex justify-center">
               <button
                 onClick={updateProfile}
