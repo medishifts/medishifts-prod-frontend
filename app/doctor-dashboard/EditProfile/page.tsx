@@ -614,22 +614,27 @@ export default function EditProfileComponent(props: any) {
     fetchProfileData();
   }, []);
 
-  const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+ const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const degree = e.target.value as Degree;
     setSelectedDegree(degree);
-    setSelectedDegforCouncil(degree);
 
+    // Fetch Postgraduate Courses based on selected Degree
     if (degree) {
       const pgOptions = Object.keys(
-        educationalQualifications.degrees[degree].postgraduateCourses
+        educationalQualifications.degrees[degree]?.postgraduateCourses || {}
       ) as PGCourses[];
+
       setPGCourses(pgOptions);
     } else {
       setPGCourses([]);
     }
 
-    setSelectedPGCourse("");
+    // Always set PG Course and Specialization to "Not Applicable" by default
+    setSelectedPGCourse("Not Applicable");
     setSpecializationCourses([]);
+    setSelectedSpecialization("Not Applicable");
+
+    setSelectedDegforCouncil(degree);
     setSelectedCouncil("");
   };
 
@@ -637,6 +642,7 @@ export default function EditProfileComponent(props: any) {
     const pgCourse = e.target.value as PGCourses;
     setSelectedPGCourse(pgCourse);
 
+    // Fetch specialization options if PG course is selected
     if (pgCourse && selectedDegree) {
       const specializationOptions =
         educationalQualifications.degrees[selectedDegree].postgraduateCourses[
@@ -646,8 +652,14 @@ export default function EditProfileComponent(props: any) {
     } else {
       setSpecializationCourses([]);
     }
+
+    // Default specialization to "Not Applicable"
+    setSelectedSpecialization("Not Applicable");
   };
-  const handleSpecializationChange = (e: any) => {
+
+  const handleSpecializationChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setSelectedSpecialization(e.target.value);
   };
 
