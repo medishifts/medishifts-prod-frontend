@@ -1,15 +1,13 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { AiOutlineClockCircle, AiOutlineClose } from "react-icons/ai";
 import pb from "@/utils/pocketbase-connect";
 import toast from "react-hot-toast";
-import { AppDispatch } from "@/app/redux/store";
+import { AppDispatch, useAppSelector } from "@/app/redux/store";
 import { useDispatch } from "react-redux";
 import { setNotifications as ReduxSetNotifications } from "@/app/redux/features/notifications-slice";
 import { Spinner } from "@nextui-org/react";
-
-// Notification interface
+// Define a TypeScript interface for notification data
 interface Notification {
   id: string;
   title: string;
@@ -18,10 +16,31 @@ interface Notification {
   time: string;
   bgColor: string;
   textColor: string;
-  read: boolean;
+  read: boolean; // Add read status
 }
 
-// NotificationRecord type
+interface NotificationsProps {
+  notification: any;
+  clearNotification: () => void;
+}
+
+// Predefined color pairs that are both attractive and user-friendly
+const colorPairs = [
+  { bgColor: "bg-blue-500", textColor: "text-white" },
+  { bgColor: "bg-green-500", textColor: "text-white" },
+  { bgColor: "bg-yellow-500", textColor: "text-black" },
+  { bgColor: "bg-red-500", textColor: "text-white" },
+  { bgColor: "bg-purple-500", textColor: "text-white" },
+  { bgColor: "bg-indigo-500", textColor: "text-white" },
+  { bgColor: "bg-pink-500", textColor: "text-white" },
+  { bgColor: "bg-teal-500", textColor: "text-white" },
+];
+
+// Function to get a random color pair
+const getRandomColorPair = () => {
+  return colorPairs[Math.floor(Math.random() * colorPairs.length)];
+};
+
 type NotificationRecord = {
   id: string;
   collectionId: string;
@@ -36,92 +55,162 @@ type NotificationRecord = {
   user: string;
 };
 
-const colorPairs = [
-  { bgColor: "bg-blue-500", textColor: "text-white" },
-  { bgColor: "bg-green-500", textColor: "text-white" },
-  { bgColor: "bg-yellow-500", textColor: "text-black" },
-  { bgColor: "bg-red-500", textColor: "text-white" },
-  { bgColor: "bg-purple-500", textColor: "text-white" },
-  { bgColor: "bg-indigo-500", textColor: "text-white" },
-  { bgColor: "bg-pink-500", textColor: "text-white" },
-  { bgColor: "bg-teal-500", textColor: "text-white" },
-];
-
-const getRandomColorPair = () => {
-  return colorPairs[Math.floor(Math.random() * colorPairs.length)];
+type NotificationItem = {
+  id: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  message: string;
+  read_receipt: string;
+  sender: string;
+  title: string;
+  updated: string;
+  url: string;
+  user: string;
 };
 
-const Notifications = (props: { clearNotification: () => void }) => {
+const Notifications = (props: any) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [readCount, setReadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [readCount, setReadCount] = useState(0); // Track read notifications
   const dispatch = useDispatch<AppDispatch>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const getNoti = async () => {
     try {
-      setIsLoading(true);
-
-      const records = await pb
+      const records: any = await pb
         .collection("notifications")
         .getFullList<NotificationRecord>({
           sort: "-created",
         });
 
-      const formattedNotifications = records.map((record) => {
-        const { bgColor, textColor } = getRandomColorPair();
-        return {
-          id: record.id,
-          title: record.title,
-          description: record.message,
-          user: record.sender || "Medishifts.in",
-          time: new Date(record.created).toLocaleString(),
-          bgColor,
-          textColor,
-          read: record.read_receipt === "READ",
-        };
-      });
+      // Map PocketBase records to NotificationItem type
+      //@ts-ignore
+      const notifications: NotificationItem[] = records.map((record) => ({
+        id: record.id,
+        collectionId: record.collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        message: record.message,
+        read_receipt: record.read_receipt,
+        sender: record.sender,
+        title: record.title,
+        updated: record.updated,
+        url: record.url,
+        user: record.user,
+      }));
 
+      dispatch(ReduxSetNotifications(notifications));
+      const formattedNotifications: Notification[] = records.map(
+        (record: any) => {
+          const { bgColor, textColor } = getRandomColorPair();
+          return {
+            id: record.id,
+            title: record.title,
+            description: record.message,
+            user: record.sender || "Medishifts.in",
+            time: new Date(record.created).toLocaleString(),
+            bgColor,
+            textColor,
+            read: record.read_receipt === "READ", // Determine read status from record
+          };
+        }
+      );
+
+      // Update notification state and read count
       setNotifications(formattedNotifications);
       setReadCount(formattedNotifications.filter((noti) => noti.read).length);
-      dispatch(ReduxSetNotifications(records));
     } catch (error) {
       console.error("Error fetching notifications:", error);
       toast.error("Failed to load notifications");
+      dispatch(ReduxSetNotifications([]));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const markAsRead = async (id: string) => {
-    const notification = notifications.find((noti) => noti.id === id);
-    if (!notification || notification.read) return;
+  // Load notifications from Pocketbase
+  // const loadNoti = async () => {
+  //   const records = await pb.collection("notifications").getFullList({
+  //     sort: "-created",
+  //   });
 
-    const updatedNotifications = notifications.map((noti) =>
-      noti.id === id ? { ...noti, read: true } : noti
+  //   //@ts-ignore
+  //   // dispatch(setNotifications(records));
+
+  //   console.log("Get Notifications --> ", records);
+
+  //   // Map the response to the required format
+  //   const formattedNotifications: Notification[] = records.map(
+  //     (record: any) => {
+  //       const { bgColor, textColor } = getRandomColorPair();
+  //       return {
+  //         id: record.id,
+  //         title: record.title,
+  //         description: record.message,
+  //         user: record.sender || "Medishifts.in",
+  //         time: new Date(record.created).toLocaleString(),
+  //         bgColor,
+  //         textColor,
+  //         read: record.read_receipt === "READ", // Determine read status from record
+  //       };
+  //     }
+  //   );
+
+  //   // Update notification state and read count
+  //   setNotifications(formattedNotifications);
+  //   setReadCount(formattedNotifications.filter((noti) => noti.read).length);
+  // };
+
+  // Mark notification as read only if it's unread
+  const markAsRead = async (id: string) => {
+    // Find the notification by id
+    const notification = notifications.find(
+      (notification) => notification.id === id
+    );
+
+    // If the notification is already read, do nothing
+    if (notification?.read) {
+      return; // Exit the function, no API call is made
+    }
+
+    // Otherwise, mark it as read
+    const updatedNotifications = notifications.map((notification) =>
+      notification.id === id ? { ...notification, read: true } : notification
     );
 
     setNotifications(updatedNotifications);
+
     setReadCount(updatedNotifications.filter((noti) => noti.read).length);
 
     try {
       await pb.collection("notifications").update(id, { read_receipt: "READ" });
+      await getNoti();
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
       toast.error("Failed to update notification status");
     }
   };
 
+  // Delete notification
   const deleteNotification = async (id: string) => {
-    const notificationToDelete = notifications.find((noti) => noti.id === id);
-    if (!notificationToDelete) return;
+    // Check if the notification is unread
+    const deletedNotification = notifications.find(
+      (notification) => notification.id === id
+    );
 
-    if (!notificationToDelete.read) {
-      setReadCount((prev) => Math.max(prev - 1, 0));
+    if (!deletedNotification) return;
+
+    // Update readCount if the notification was unread
+    if (!deletedNotification.read) {
+      setReadCount((prevCount) => Math.max(prevCount - 1, 0)); // Prevent going negative
     }
 
     try {
       await pb.collection("notifications").delete(id);
-      setNotifications((prev) => prev.filter((noti) => noti.id !== id));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== id)
+      );
+      await getNoti();
       toast.success("Notification deleted successfully!");
     } catch (error) {
       console.error("Failed to delete notification:", error);
@@ -130,6 +219,7 @@ const Notifications = (props: { clearNotification: () => void }) => {
   };
 
   useEffect(() => {
+    // loadNoti();
     getNoti();
     props.clearNotification();
   }, []);
