@@ -224,8 +224,10 @@ export default function EditProfileComponent(props: any) {
   const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const degree = e.target.value;
     setSelectedDegree(degree);
-    setSelectedPGCourse("");
-    setSelectedSpecialization("");
+
+    // Set default PG course and specialization to "Not Applicable"
+    setSelectedPGCourse("Not Applicable");
+    setSelectedSpecialization("Not Applicable");
 
     // Update PG courses based on the selected degree
     if (degree) {
@@ -233,16 +235,18 @@ export default function EditProfileComponent(props: any) {
     } else {
       setPGCourses([]);
     }
-    setSpecializationCourses([]);
+    setSpecializationCourses([]); // Clear specialization options for new degree
   };
 
   // Handler for when a postgraduate course is selected
   const handlePGCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const pgCourse = e.target.value;
     setSelectedPGCourse(pgCourse);
-    setSelectedSpecialization("");
 
-    // Update specialization courses
+    // Set specialization to "Not Applicable" by default
+    setSelectedSpecialization("Not Applicable");
+
+    // Update specialization courses based on the selected PG course
     if (pgCourse) {
       setSpecializationCourses(nurse_qualifications.specialization);
     } else {
