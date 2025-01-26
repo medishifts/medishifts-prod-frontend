@@ -10,11 +10,11 @@ import {
   NavbarMenuItem,
 } from "@nextui-org/navbar";
 import { Button } from "@nextui-org/button";
-import { Input } from "@nextui-org/input";
+
 import NextLink from "next/link";
 import ReactLoading from "react-loading";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { Logo } from "@/components/icons";
+
 import LoginModal from "./LoginModal";
 import pb from "@/utils/pocketbase-connect";
 import { getCookie } from "cookies-next";

@@ -375,7 +375,7 @@ const JobModal: React.FC<{
                     </span>
                     <h3 className="text-lg font-semibold mb-4">Compensation</h3>
                     <div className="text-2xl font-bold flex items-center">
-                      <DollarSign size={24} className="mr-2" />₹
+                      ₹
                       {Number(job.salary) -
                         Math.round(calculateFee(job.salary, maxFee))}
                     </div>
