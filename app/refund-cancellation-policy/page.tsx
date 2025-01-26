@@ -119,10 +119,10 @@ const CancellationPolicy = () => {
               <li>
                 Email:{" "}
                 <a
-                  href="mailto:medishifts@gmail.com"
+                  href="mailto:support@medishifts.in"
                   className="text-blue-500 underline"
                 >
-                  medishifts@gmail.com
+                  support@medishifts.in
                 </a>
               </li>
               <li>

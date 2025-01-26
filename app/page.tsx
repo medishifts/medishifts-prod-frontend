@@ -1,18 +1,13 @@
 "use client";
-import Footer from "@/components/footer";
-import PricingSection from "@/components/pricing";
-import Sponsors from "@/components/sponsors";
-import Achievements from "@/components/stats";
-import TestimonialSection from "@/components/testimonials";
+
 import Image from "next/image";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { setNotifications } from "@/app/redux/features/notifications-slice";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/app/redux/store";
-import pb from "@/utils/pocketbase-connect";
+import { AppDispatch, useAppSelector } from "@/app/redux/store";
 import HowItWorksSection from "@/components/HowItWorks";
+
 // type NotificationRecord = {
 //   id: string;
 //   collectionId: string;
@@ -66,6 +61,7 @@ const steps = [
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
+  const role = useAppSelector((state) => state.profileReducer.value.role);
 
   useEffect(() => {
     AOS.init({
@@ -237,7 +233,15 @@ export default function Home() {
           </p>
           <a
             className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 py-2 px-6 rounded-full text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg animate-bounce"
-            href="/usertype"
+            href={
+              role === "DOCTOR"
+                ? "/doctor-dashboard"
+                : role === "HOSPITAL"
+                ? "/hospital-dashboard"
+                : role === "NURSE"
+                ? "/nurse-dashboard"
+                : "/usertype"
+            }
           >
             Get Started
           </a>

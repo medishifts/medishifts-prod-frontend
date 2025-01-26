@@ -260,6 +260,7 @@ export default function EditProfileComponent(props: any) {
   ) => {
     setSelectedSpecialization(e.target.value);
   };
+  
 
   const handleCouncilChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCouncil(event.target.value);
@@ -822,7 +823,7 @@ export default function EditProfileComponent(props: any) {
                   {/* Contact Number */}
                   <div className="col-span-1 sm:col-span-2">
                     <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
-                      Contact Number
+                      Enter Whatsapp Number
                     </label>
                     <span>Mobile number must be associated with Whatsapp</span>
                     <input
@@ -838,7 +839,7 @@ export default function EditProfileComponent(props: any) {
                       onClick={handleSendOtp}
                       className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors dark:text-white"
                     >
-                      Change Contact Number
+                      Change Whatsapp Number
                     </button>
                     {otpSent && (
                       <p className="text-green-500 mt-2">
@@ -951,20 +952,7 @@ export default function EditProfileComponent(props: any) {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Registration Number
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={registrationNumber}
-                    onChange={(e) => setRegistrationNumber(e.target.value)}
-                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter Reg Number Without Council"
-                    required
-                  />
-                </div>
+
                 <div>
                   <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
                     Council
@@ -983,6 +971,20 @@ export default function EditProfileComponent(props: any) {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Registration Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter Reg Number Without Council"
+                    required
+                  />
                 </div>
 
                 {/* Degree Dropdown */}
@@ -1071,7 +1073,7 @@ export default function EditProfileComponent(props: any) {
                           onClick={handleEducationalDetails}
                           className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
-                          Add Qualification
+                          Save Qualification
                         </button>
                       </div>
                     )}
@@ -1347,30 +1349,6 @@ export default function EditProfileComponent(props: any) {
                     )}
                   </div>
 
-                  {/* Registration Number */}
-                  <div>
-                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                      Registration Number
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={registrationNumber}
-                      onChange={(e) => setRegistrationNumber(e.target.value)}
-                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        fieldErrors.registrationNumber ? "border-red-500" : ""
-                      }`}
-                      // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                      placeholder="Enter Reg Number Without Council"
-                      required
-                    />
-                    {fieldErrors.registrationNumber && (
-                      <p className="text-red-500 mt-1">
-                        Registration number is required
-                      </p>
-                    )}
-                  </div>
-
                   {/* Experience Years */}
                   <div>
                     <label className="block text-base sm:text-lg font-medium text-gray-700 dark:text-white mb-1 sm:mb-2">
@@ -1438,6 +1416,29 @@ export default function EditProfileComponent(props: any) {
                     </select>
                     {fieldErrors.selectedCouncil && (
                       <p className="text-red-500 mt-1">Council is required</p>
+                    )}
+                  </div>
+                  {/* Registration Number */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      Registration Number
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={registrationNumber}
+                      onChange={(e) => setRegistrationNumber(e.target.value)}
+                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        fieldErrors.registrationNumber ? "border-red-500" : ""
+                      }`}
+                      // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Enter Reg Number Without Council"
+                      required
+                    />
+                    {fieldErrors.registrationNumber && (
+                      <p className="text-red-500 mt-1">
+                        Registration number is required
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1526,7 +1527,7 @@ export default function EditProfileComponent(props: any) {
                           onClick={handleEducationalDetails}
                           className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
-                          Add Qualification
+                          Save Qualification
                         </button>
                       </div>
                     )}

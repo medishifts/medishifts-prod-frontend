@@ -639,7 +639,7 @@ export default function EditProfileComponent(props: any) {
                   {/* Contact Number */}
                   <div className="col-span-1 sm:col-span-2">
                     <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
-                      Contact Number
+                      Enter WhatsApp number
                     </label>
                     <span>Mobile number must be associated with Whatsapp</span>
                     <input
@@ -648,7 +648,7 @@ export default function EditProfileComponent(props: any) {
                       value={mobile}
                       onChange={(e) => setMobile(e.target.value)}
                       className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter contact number"
+                      placeholder="Please enter whatsapp number "
                     />
 
                     <button
@@ -902,13 +902,13 @@ export default function EditProfileComponent(props: any) {
                   {/* Mobile Number */}
                   <div className="col-span-1 sm:col-span-2">
                     <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
-                      Enter contact number
+                      Enter WhatsApp number
                       <span className="text-red-500 ml-1">*</span>
                       {renderInput(
                         "mobile",
                         mobile,
                         (e) => setMobile(e.target.value),
-                        "Enter contact number"
+                        "Please enter contact number"
                       )}
                     </label>
 

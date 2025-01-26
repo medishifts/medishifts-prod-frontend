@@ -614,7 +614,7 @@ export default function EditProfileComponent(props: any) {
     fetchProfileData();
   }, []);
 
- const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const degree = e.target.value as Degree;
     setSelectedDegree(degree);
 
@@ -1271,7 +1271,7 @@ export default function EditProfileComponent(props: any) {
                       value={mobile}
                       onChange={(e) => setMobile(e.target.value)}
                       className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter contact number"
+                      placeholder="Enter your whatsapp number"
                     />
 
                     <button
@@ -1391,20 +1391,6 @@ export default function EditProfileComponent(props: any) {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Registration Number
-                    <span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={registrationNumber}
-                    onChange={(e) => setRegistrationNumber(e.target.value)}
-                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
-                    placeholder="Enter Reg Number Without Council"
-                    required
-                  />
-                </div>
 
                 {/* Degree Dropdown */}
                 <div className="flex flex-wrap gap-4">
@@ -1490,7 +1476,7 @@ export default function EditProfileComponent(props: any) {
                         onClick={handleEducationalDetails}
                         className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                       >
-                        Add Qualification
+                        Save Qualification
                       </button>
                     </div>
                   )}
@@ -1523,6 +1509,20 @@ export default function EditProfileComponent(props: any) {
                     </select>
                   </div>
                 )}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Registration Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+                    placeholder="Enter Reg Number Without Council"
+                    required
+                  />
+                </div>
 
                 <p className="flex justify-center text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
                   If you have multiple documents, please merge them into a
@@ -1675,7 +1675,7 @@ export default function EditProfileComponent(props: any) {
                       "mobile",
                       mobile,
                       (e) => setMobile(e.target.value),
-                      "Enter contact number"
+                      "Enter your whatsapp number"
                     )}
                     <button
                       onClick={handleSendOtp}
@@ -1786,30 +1786,6 @@ export default function EditProfileComponent(props: any) {
                     </select>
                     {fieldErrors.selectedCity && (
                       <p className="text-red-500 mt-1">City is required</p>
-                    )}
-                  </div>
-
-                  {/* Registration Number */}
-                  <div>
-                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                      Registration Number
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={registrationNumber}
-                      onChange={(e) => setRegistrationNumber(e.target.value)}
-                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        fieldErrors.registrationNumber ? "border-red-500" : ""
-                      }`}
-                      // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                      placeholder="Enter Reg Number Without Council"
-                      required
-                    />
-                    {fieldErrors.registrationNumber && (
-                      <p className="text-red-500 mt-1">
-                        Registration number is required
-                      </p>
                     )}
                   </div>
 
@@ -1940,7 +1916,7 @@ export default function EditProfileComponent(props: any) {
                         onClick={handleEducationalDetails}
                         className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                       >
-                        Add Qualification
+                        Save Qualification
                       </button>
                     </div>
                   )}
@@ -1981,7 +1957,29 @@ export default function EditProfileComponent(props: any) {
                     )}
                   </div>
                 )}
-
+                {/* Registration Number */}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Registration Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      fieldErrors.registrationNumber ? "border-red-500" : ""
+                    }`}
+                    // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    placeholder="Enter Reg Number Without Council"
+                    required
+                  />
+                  {fieldErrors.registrationNumber && (
+                    <p className="text-red-500 mt-1">
+                      Registration number is required
+                    </p>
+                  )}
+                </div>
                 <p className="flex justify-center text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
                   If you have multiple documents, please merge them into a
                   single PDF file before uploading.

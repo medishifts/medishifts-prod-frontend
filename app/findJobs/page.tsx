@@ -736,7 +736,7 @@ export default function JobsPage() {
                         Compensation
                       </h3>
                       <div className="text-2xl font-bold flex items-center">
-                        <DollarSign size={24} className="mr-2" />₹
+                        ₹
                         {selectedJob &&
                           Number(selectedJob.salary) -
                             Math.round(

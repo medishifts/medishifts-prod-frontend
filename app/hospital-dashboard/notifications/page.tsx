@@ -224,7 +224,6 @@ const Notifications = (props: any) => {
     props.clearNotification();
   }, []);
 
-
   return isLoading ? (
     <div className="flex h-screen justify-center items-center">
       <Spinner />

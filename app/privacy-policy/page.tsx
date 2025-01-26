@@ -153,7 +153,7 @@ const PrivacyPolicyPage = () => {
             </li>
             <li>
               <a
-                href="mailto:medishits@gmail.com"
+                href="mailto:support@medishifts.in"
                 className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-colors"
               >
                 <Mail size={24} />
