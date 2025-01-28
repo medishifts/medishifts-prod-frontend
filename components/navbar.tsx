@@ -413,7 +413,7 @@ try {
           </NavbarItem>
         </NavbarContent>
 
-        <NavbarContent className="sm:hidden basis-1 pr-2" justify="end">
+        <NavbarContent className="sm:hidden gap-x-2 basis-1" justify="end">
           {name ? (
             <div className="flex items-center gap-x-1">
               <div className="relative flex items-center">
@@ -422,7 +422,7 @@ try {
                   href={`/${userType}-dashboard?page=notification`}
                 >
                   <FaBell
-                    size={22}
+                    size={18}
                     className={`text-gray-800 dark:text-white transition-colors duration-300 ${
                       unreadNotifications > 0
                         ? "animate-pulse text-blue-600 dark:text-blue-400"
