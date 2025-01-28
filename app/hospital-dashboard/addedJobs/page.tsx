@@ -25,6 +25,8 @@ import {
   GraduationCap,
   BookOpen,
   Stethoscope,
+  Bell,
+  Trash2,
 } from "lucide-react";
 
 type Job = {
@@ -44,6 +46,83 @@ type Job = {
   hospital_name: string;
   postGraduateCourses: string;
   specializations: string;
+};
+const isHiringAvailable = (job: Job): boolean => {
+  const now = new Date();
+
+  // Get hire_to date
+  const hireToDate = new Date(job.hire_to);
+
+  // Parse shift_to time (12-hour format)
+  const timeMatch = job.shift_to.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!timeMatch) return false;
+
+  let hours = parseInt(timeMatch[1]);
+  const minutes = parseInt(timeMatch[2]);
+  const period = timeMatch[3].toUpperCase();
+
+  // Convert to 24-hour format
+  if (period === "PM" && hours < 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+
+  // Set the shift end time on hire_to date
+  const shiftEndTime = new Date(hireToDate);
+  shiftEndTime.setHours(hours, minutes, 0, 0);
+
+  // Add 1 hour to shift end time
+  const cutoffTime = new Date(shiftEndTime.getTime() + 60 * 60 * 1000);
+
+  // If current time is past cutoff time (hire_to date + shift_to time + 1 hour), return false
+  if (now > cutoffTime) {
+    return false;
+  }
+
+  return true;
+};
+
+const isQuickHiringAvailable = (job: Job): boolean => {
+  const now = new Date();
+
+  // Get today's date at midnight
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Get hire_to date at midnight
+  const hireToDate = new Date(job.hire_to);
+  hireToDate.setHours(0, 0, 0, 0);
+
+  // If hire_to date is not today, quick hiring is not available
+  if (hireToDate.getTime() !== today.getTime()) {
+    return false;
+  }
+
+  // Parse 12-hour time format (e.g., "2:00 PM")
+  const timeMatch = job.shift_to.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!timeMatch) return false;
+
+  let hours = parseInt(timeMatch[1]);
+  const minutes = parseInt(timeMatch[2]);
+  const period = timeMatch[3].toUpperCase();
+
+  // Convert to 24-hour format
+  if (period === "PM" && hours < 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+
+  // Create shift end time for today
+  const shiftEndTime = new Date(today);
+  shiftEndTime.setHours(hours, minutes, 0, 0);
+
+  // If current time is before shift end, return false
+  if (now < shiftEndTime) {
+    return false;
+  }
+
+  // Calculate time difference in milliseconds
+  const timeDifference = now.getTime() - shiftEndTime.getTime();
+  const oneHourInMs = 60 * 60 * 1000; // 1 hour in milliseconds
+
+  // Return true if the difference is less than or equal to 1 hour
+  return timeDifference <= oneHourInMs;
 };
 
 const AddedJobs = () => {
@@ -178,16 +257,34 @@ const AddedJobs = () => {
               <div
                 key={job.id}
                 style={{ backgroundColor: getRandomFadedColor() }}
-                className="max-w-xs rounded-3xl p-6 shadow-md hover:shadow-xl transition-shadow duration-300 dark:bg-gray-800 dark:text-gray-200"
+                className="max-w-xs rounded-3xl p-6 shadow-md hover:shadow-xl transition-shadow duration-300 dark:bg-gray-800 dark:text-gray-200 relative"
               >
                 <div className="flex justify-between items-start mb-4">
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
                     {new Date(job.created).toLocaleDateString()}
                   </p>
-                  <DeleteIcon
-                    onClick={() => deleteJob(job.id)}
-                    className="text-red-600 hover:text-orange-900 cursor-pointer text-3xl"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="md"
+                      onClick={() => deleteJob(job.id)}
+                      className="text-destructive hover:text-destructive/90"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      <span className="sr-only">Delete job</span>
+                    </Button>
+                    {isQuickHiringAvailable(job) && (
+                      <div
+                        className="bg-yellow-400 text-yellow-800 animate-pulse rounded-full p-1 flex items-center space-x-1"
+                        title="Urgent Hiring Available"
+                      >
+                        <Bell className="w-5 h-5" />
+                        <span className="text-xs font-semibold">
+                          Urgent Hiring
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center mb-4">
@@ -478,6 +575,9 @@ const AddedJobs = () => {
           isOpen={isApplicantsModalOpen}
           onClose={handleApplicantsModalClose}
           jobId={selectedJobId}
+          isHiringAvailable={isHiringAvailable(
+            jobs.find((job) => job.id === selectedJobId)
+          )}
         />
       )}
     </main>
