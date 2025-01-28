@@ -67,6 +67,7 @@ interface ViewApplicantsModalProps {
   isOpen: boolean;
   onClose: () => void;
   jobId: string | null;
+  isHiringAvailable: boolean;
 }
 
 interface PocketBaseApplicant {
@@ -90,6 +91,7 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
   isOpen,
   onClose,
   jobId,
+  isHiringAvailable,
 }) => {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -309,7 +311,6 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
       Accept: "/",
 
       Authorization: `Bearer ${authdata.token}`,
-      // "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJ1cjgzZGxuNnJ1aGw1MWciLCJleHAiOjE3Mjk5NTU3NjcsImlkIjoiYzF2czl6dHkxeTQ3NHVkIiwidHlwZSI6ImF1dGhSZWNvcmQifQ.we7FDSqbPvcQ6LDFxVCtq_zrLpmDyrwlHIbiL2J3-tY",
       "Content-Type": "application/json",
     };
 
@@ -423,14 +424,25 @@ const ViewApplicantsModal: React.FC<ViewApplicantsModalProps> = ({
                         )}
                       </Button>
                     )}
+
                     <Button
                       className="text-white"
                       onClick={() => handleHireClick(applicant)}
                       size="sm"
-                      color="success"
-                      disabled={applicant.isHired}
+                      color={
+                        applicant.isHired
+                          ? "success"
+                          : isHiringAvailable
+                          ? "success"
+                          : "default"
+                      }
+                      disabled={applicant.isHired || !isHiringAvailable}
                     >
-                      {applicant.isHired ? "Hired" : "Hire"}
+                      {applicant.isHired
+                        ? "Hired"
+                        : isHiringAvailable
+                        ? "Hire"
+                        : "Not Available"}
                     </Button>
                   </div>
                 </li>

@@ -61,6 +61,11 @@ interface Education {
 
 export const Navbar = () => {
   const dispatch = useDispatch<AppDispatch>();
+  // const data = getCookie("authData");
+  // const authData = data ? JSON.parse(data) : null;
+  // console.log("Authdata ", authData);
+  // const userName = authData.record.name;
+
   const name = useAppSelector((state) => state.profileReducer.value.name);
   const role = useAppSelector((state) => state.profileReducer.value.role);
   const id = useAppSelector((state) => state.profileReducer.value.id);
@@ -221,22 +226,20 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-try {
-  const unsubscribe = pb
-    .collection("notifications")
-    .subscribe("*", async function (e) {
-      await getNoti();
-      // if (e.action === "create") {
-      //   toast.success("New notification Received", {
-      //     icon: "🔔",
-      //   });
-      // }
-    });
-} catch (error) {
-  console.error("Error fetching notifications:", error);
-}
-
-   
+    try {
+      const unsubscribe = pb
+        .collection("notifications")
+        .subscribe("*", async function (e) {
+          await getNoti();
+          // if (e.action === "create") {
+          //   toast.success("New notification Received", {
+          //     icon: "🔔",
+          //   });
+          // }
+        });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
 
     return () => {
       pb.collection("notifications").unsubscribe();

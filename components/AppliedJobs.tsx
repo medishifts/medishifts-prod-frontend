@@ -10,22 +10,16 @@ import {
   Button,
   useDisclosure,
   Spinner,
-  divider,
 } from "@nextui-org/react";
 import toast, { Toaster } from "react-hot-toast";
 import {
   X,
   Briefcase,
-  DollarSign,
   GraduationCap,
   BookOpen,
   Clock,
   MapPin,
   Calendar,
-  User,
-  Home,
-  FileText,
-  Award,
   Stethoscope,
   Star,
 } from "lucide-react";
