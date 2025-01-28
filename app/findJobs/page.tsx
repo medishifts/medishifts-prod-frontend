@@ -75,15 +75,9 @@ const mapRecordToJob = (record: RecordModel): Job => {
     average_rating: record.average_rating || 0,
   };
 };
-const ROLE_CONFIGS = {
-  NURSE: {
-    degrees: ["ANM", "GNM", "BSc Nursing", "BSc Nursing (Post Basic)"],
-    title: "Nursing Positions"
-  },
-  DOCTOR: {
-    degrees: ["MBBS", "BHMS", "BAMS", "BDS"],
-    title: "Medical Positions"
-  }
+const DEGREE_OPTIONS = {
+  doctor: ["MBBS", "BHMS", "BAMS", "BDS"],
+  nurse: ["ANM", "GNM", "BSc Nursing", "BSc Nursing (Post Basic)"],
 };
 const getAllCities = () => {
   const cities = new Set();
@@ -96,110 +90,99 @@ export default function JobsPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [userId, setUserId] = useState("");
-  const [jobs, setJobs] = useState([]);
-  const [userRole, setUserRole] = useState("");
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState({
     hire: "all",
     salary: "default",
     degree: "all",
-    city: "all",
+    city: "all", // Added city filter
   });
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedJob, setSelectedJob] = useState(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState("");
   const jobsPerPage = 9;
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const cities = getAllCities();
 
-  // Initialize user data and trigger initial fetch
   useEffect(() => {
-    const initializeUserData = async () => {
-      const authDataCookie = getCookie("authData");
-      if (!authDataCookie) {
-        toast.error("Authentication data not found. Please log in.");
-        setLoading(false);
-        return;
-      }
+    const authDataCookie = getCookie("authData");
+
+    if (authDataCookie) {
+      // console.log("Cookie Value:", authDataCookie);
 
       try {
         const authData = JSON.parse(authDataCookie as string);
         setUserId(authData.record.id);
         setUserRole(authData.record.role);
-        setIsInitialized(true);
+        // console.log("User ID:", authData.record.id);
+        console.log("User Role:", authData.record.role);
       } catch (error) {
-        console.error("Error parsing auth data:", error);
+        console.error("Error parsing cookie:", error);
         toast.error("Failed to parse auth data. Please log in again.");
-        setLoading(false);
       }
-    };
-
-    initializeUserData();
-  }, []);
-
-  // Fetch jobs when userRole is set or filters change
-  useEffect(() => {
-    if (isInitialized && userRole) {
-      fetchJobs();
+    } else {
+      toast.error("Authentication data not found. Please log in.");
     }
-  }, [isInitialized, userRole, filter, currentPage, searchTerm]);
-
+  });
+  const getDegreeOptions = () => {
+    if (userRole === "NURSE") {
+      return DEGREE_OPTIONS.nurse;
+    }
+    return DEGREE_OPTIONS.doctor;
+  };
   const fetchJobs = async () => {
-    if (!userRole) {
-      setJobs([]);
-      setLoading(false);
-      return;
-    }
-
+    pb.autoCancellation(false);
     setLoading(true);
     try {
-      const queryParams = {
+      let queryParams: Record<string, any> = {
         page: currentPage,
         perPage: jobsPerPage,
         sort: "-created",
-        filter: "",
       };
 
-      // Build filter string
-      const filterConditions = [];
-      
-      // Always add role filter first
-      filterConditions.push(`hire="${userRole}"`);
-
+      // Initialize filter array
+      let filters = [];
+      filters.push(`hire~"${userRole}"`);
+      // Fiter for city
       if (filter.city !== "all") {
-        filterConditions.push(`city="${filter.city}"`);
+        filters.push(`city="${filter.city}"`);
       }
 
-      if (filter.degree !== "all") {
-        filterConditions.push(`degree="${filter.degree}"`);
-      }
-
+      // Add search query
       if (searchTerm) {
-        filterConditions.push(`position~"${searchTerm}"`);
+        filters.push(`position~"${searchTerm}"`);
+      }
+      if (filter.degree !== "all") {
+        filters.push(`degree="${filter.degree}"`);
+      }
+      // Add filter for user role (existing filter)
+
+      if (filters.length > 0) {
+        queryParams.filter = filters.join("&&");
       }
 
-      // Combine all filters
-      queryParams.filter = filterConditions.join("&&");
-
-      // Apply salary sorting
+      // Add sorting query
       if (filter.salary === "lowToHigh") {
         queryParams.sort = "+salary";
       } else if (filter.salary === "highToLow") {
         queryParams.sort = "-salary";
       }
 
-      console.log("Query params:", queryParams); // Debug log
-
       const resultList = await pb
         .collection("view_jobs")
         .getList(currentPage, jobsPerPage, queryParams);
 
-      const mappedJobs = resultList.items.map(mapRecordToJob);
+      // Map RecordModel[] to Job[]
+      const mappedJobs: Job[] = resultList.items.map(mapRecordToJob);
+
       setJobs(mappedJobs);
       setTotalPages(Math.ceil(resultList.totalItems / jobsPerPage));
-      
+      console.log(resultList);
     } catch (error) {
       console.error("Error fetching jobs:", error);
       toast.error("Failed to fetch jobs. Please try again later.");
@@ -208,15 +191,11 @@ export default function JobsPage() {
     }
   };
 
-  const getDegreeOptions = () => {
-    if (!userRole || !ROLE_CONFIGS[userRole as keyof typeof ROLE_CONFIGS]) {
-      return [];
-    }
-    return ROLE_CONFIGS[userRole as keyof typeof ROLE_CONFIGS].degrees;
-  };
+  useEffect(() => {
+    fetchJobs();
+  }, [currentPage, filter, searchTerm, userRole]);
 
-  // Rest of your existing helper functions
-  const openJobModal = (job) => {
+  const openJobModal = (job: Job) => {
     setSelectedJob(job);
     onOpen();
   };
@@ -226,30 +205,15 @@ export default function JobsPage() {
     onClose();
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage > 0 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+  const handleSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      setSearchValue(searchTerm);
+      setCurrentPage(1);
     }
   };
 
-  const getRandomFadedColor = () => {
-    const colors = [
-      "rgba(255, 99, 132, 0.2)",
-      "rgba(54, 162, 235, 0.2)",
-      "rgba(255, 206, 86, 0.2)",
-      "rgba(75, 192, 192, 0.2)",
-      "rgba(153, 102, 255, 0.2)",
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
-
-  const maxFee = 300;
-  const calculateFee = (salary: number, maxFee: number) => {
-    const fee = salary * 0.1;
-    return fee >= maxFee ? maxFee : fee;
-  };
-
-  // Your existing applyForJob function
   const applyForJob = async (jobId: string) => {
     const authDataCookie = getCookie("authData");
     if (!authDataCookie) {
@@ -274,11 +238,63 @@ export default function JobsPage() {
       }
     });
 
-    toast.promise(applyPromise, {
-      loading: "Applying for the job...",
-      success: (message) => `${message}`,
-      error: (message) => `${message}`,
-    });
+    toast.promise(
+      applyPromise,
+      {
+        loading: "Applying for the job...",
+        success: (message) => `${message}`,
+        error: (message) => `${message}`,
+      },
+      {
+        success: {
+          duration: 5000,
+          icon: "✔️",
+        },
+        error: {
+          duration: 5000,
+          icon: "❌",
+        },
+      }
+    );
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const getRandomFadedColor = () => {
+    const colors = [
+      "rgba(255, 99, 132, 0.2)", // Light Red
+      "rgba(54, 162, 235, 0.2)", // Light Blue
+      "rgba(255, 206, 86, 0.2)", // Light Yellow
+      "rgba(75, 192, 192, 0.2)", // Light Teal
+      "rgba(153, 102, 255, 0.2)", // Light Purple
+      "rgba(255, 159, 64, 0.2)", // Light Orange
+      "rgba(201, 203, 207, 0.2)", // Light Gray
+      "rgba(255, 182, 193, 0.2)", // Light Pink
+      "rgba(135, 206, 250, 0.2)", // Light Sky Blue
+      "rgba(240, 230, 140, 0.2)", // Light Khaki
+      "rgba(144, 238, 144, 0.4)", // Light Green
+      "rgba(255, 192, 203, 0.4)", // Light Pink (another shade)
+      "rgba(221, 160, 221, 0.2)", // Light Plum
+      "rgba(173, 216, 230, 0.5)", // Light Blue (Pale)
+      "rgba(224, 255, 255, 0.2)", // Light Cyan
+      "rgba(250, 235, 215, 0.2)", // Light Antique White
+      "rgba(255, 228, 225, 0.5)", // Light Misty Rose
+      "rgba(245, 222, 179, 0.2)", // Light Wheat
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+  const maxFee = 300;
+  const calculateFee = (salary: any, maxFee: any) => {
+    const fee = salary * 0.1;
+    if (fee >= maxFee) {
+      return maxFee;
+    } else {
+      return fee;
+    }
   };
 
   return (
