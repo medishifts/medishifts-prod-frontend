@@ -50,11 +50,11 @@ type Job = {
 const isHiringAvailable = (job: Job): boolean => {
   const now = new Date();
 
-  // Get hire_to date
-  const hireToDate = new Date(job.hire_to);
+  // Get hire_from date
+  const hireFromDate = new Date(job.hire_from);
 
-  // Parse shift_to time (12-hour format)
-  const timeMatch = job.shift_to.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  // Parse shift_from time (12-hour format)
+  const timeMatch = job.shift_from.match(/(\d+):(\d+)\s*(AM|PM)/i);
   if (!timeMatch) return false;
 
   let hours = parseInt(timeMatch[1]);
@@ -65,14 +65,14 @@ const isHiringAvailable = (job: Job): boolean => {
   if (period === "PM" && hours < 12) hours += 12;
   if (period === "AM" && hours === 12) hours = 0;
 
-  // Set the shift end time on hire_to date
-  const shiftEndTime = new Date(hireToDate);
-  shiftEndTime.setHours(hours, minutes, 0, 0);
+  // Set the shift start time on hire_from date
+  const shiftStartTime = new Date(hireFromDate);
+  shiftStartTime.setHours(hours, minutes, 0, 0);
 
-  // Add 1 hour to shift end time
-  const cutoffTime = new Date(shiftEndTime.getTime() + 60 * 60 * 1000);
+  // Add 1 hour to shift start time
+  const cutoffTime = new Date(shiftStartTime.getTime() + 60 * 60 * 1000);
 
-  // If current time is past cutoff time (hire_to date + shift_to time + 1 hour), return false
+  // If current time is past cutoff time (hire_from date + shift_from time + 1 hour), return false
   if (now > cutoffTime) {
     return false;
   }
@@ -88,16 +88,16 @@ const isQuickHiringAvailable = (job: Job): boolean => {
   today.setHours(0, 0, 0, 0);
 
   // Get hire_to date at midnight
-  const hireToDate = new Date(job.hire_to);
-  hireToDate.setHours(0, 0, 0, 0);
+  const hireFromDate = new Date(job.hire_from);
+  hireFromDate.setHours(0, 0, 0, 0);
 
   // If hire_to date is not today, quick hiring is not available
-  if (hireToDate.getTime() !== today.getTime()) {
+  if (hireFromDate.getTime() !== today.getTime()) {
     return false;
   }
 
   // Parse 12-hour time format (e.g., "2:00 PM")
-  const timeMatch = job.shift_to.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  const timeMatch = job.shift_from.match(/(\d+):(\d+)\s*(AM|PM)/i);
   if (!timeMatch) return false;
 
   let hours = parseInt(timeMatch[1]);
@@ -109,16 +109,16 @@ const isQuickHiringAvailable = (job: Job): boolean => {
   if (period === "AM" && hours === 12) hours = 0;
 
   // Create shift end time for today
-  const shiftEndTime = new Date(today);
-  shiftEndTime.setHours(hours, minutes, 0, 0);
+  const shiftStartTime = new Date(today);
+  shiftStartTime.setHours(hours, minutes, 0, 0);
 
   // If current time is before shift end, return false
-  if (now < shiftEndTime) {
+  if (now < shiftStartTime) {
     return false;
   }
 
   // Calculate time difference in milliseconds
-  const timeDifference = now.getTime() - shiftEndTime.getTime();
+  const timeDifference = now.getTime() - shiftStartTime.getTime();
   const oneHourInMs = 60 * 60 * 1000; // 1 hour in milliseconds
 
   // Return true if the difference is less than or equal to 1 hour
@@ -273,7 +273,7 @@ const AddedJobs = () => {
                       <Trash2 className="h-5 w-5" />
                       <span className="sr-only">Delete job</span>
                     </Button>
-                    {isQuickHiringAvailable(job) && (
+                    {/* {isQuickHiringAvailable(job) && (
                       <div
                         className="bg-yellow-400 text-yellow-800 animate-pulse rounded-full p-1 flex items-center space-x-1"
                         title="Urgent Hiring Available"
@@ -283,7 +283,7 @@ const AddedJobs = () => {
                           Urgent Hiring
                         </span>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
 
@@ -430,8 +430,7 @@ const AddedJobs = () => {
                             Compensation
                           </h3>
                           <div className="flex items-center text-xl font-bold">
-                            <DollarSign className="w-6 h-6 mr-2" />₹
-                            {selectedJob?.salary.toLocaleString()}
+                            ₹ {selectedJob?.salary.toLocaleString()}
                           </div>
                         </div>
                       </div>
@@ -587,25 +586,24 @@ const AddedJobs = () => {
 // Utility function for random color generation
 const getRandomFadedColor = () => {
   const colors = [
-    "rgba(255, 99, 132, 0.4)",
-    "rgba(54, 162, 235, 0.4)",
-    "rgba(255, 206, 86, 0.4)",
-    "rgba(75, 192, 192, 0.4)",
-    "rgba(153, 102, 255, 0.4)",
-    "rgba(255, 159, 64, 0.4)",
-    "rgba(201, 203, 207, 0.4)",
-    "rgba(255, 105, 180, 0.4)",
-    "rgba(100, 149, 237, 0.4)",
-    "rgba(218, 165, 32, 0.4)",
-    "rgba(107, 142, 35, 0.4)",
-    "rgba(123, 104, 238, 0.4)",
-    "rgba(255, 140, 0, 0.4)",
-    "rgba(47, 79, 79, 0.4)",
-    "rgba(220, 20, 60, 0.4)",
-    "rgba(255, 69, 0, 0.4)",
-    "rgba(34, 139, 34, 0.4)",
-    "rgba(72, 61, 139, 0.4)",
-    "rgba(106, 90, 205, 0.4)",
+    "rgba(255, 99, 132, 0.2)", // Light Red
+    "rgba(54, 162, 235, 0.2)", // Light Blue
+    "rgba(255, 206, 86, 0.2)", // Light Yellow
+    "rgba(75, 192, 192, 0.2)", // Light Teal
+    "rgba(153, 102, 255, 0.2)", // Light Purple
+    "rgba(255, 159, 64, 0.2)", // Light Orange
+    "rgba(201, 203, 207, 0.2)", // Light Gray
+    "rgba(255, 182, 193, 0.2)", // Light Pink
+    "rgba(135, 206, 250, 0.2)", // Light Sky Blue
+    "rgba(240, 230, 140, 0.2)", // Light Khaki
+    "rgba(144, 238, 144, 0.4)", // Light Green
+    "rgba(255, 192, 203, 0.4)", // Light Pink (another shade)
+    "rgba(221, 160, 221, 0.2)", // Light Plum
+    "rgba(173, 216, 230, 0.5)", // Light Blue (Pale)
+    "rgba(224, 255, 255, 0.2)", // Light Cyan
+    "rgba(250, 235, 215, 0.2)", // Light Antique White
+    "rgba(255, 228, 225, 0.5)", // Light Misty Rose
+    "rgba(245, 222, 179, 0.2)", // Light Wheat
   ];
 
   return colors[Math.floor(Math.random() * colors.length)];
