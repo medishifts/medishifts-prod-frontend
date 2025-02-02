@@ -86,7 +86,7 @@ const App = () => {
                     className="w-full mb-2 font-semibold tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setProfessionalModalOpen(true)}
                   >
-                    Register as Professional
+                    Register as Professional(Doctor / Nurse)
                   </Button>
                 </CardBody>
               </Card>
