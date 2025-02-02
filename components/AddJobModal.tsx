@@ -84,6 +84,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
   const [authdata, setAuthData] = useState<any>(null);
   const [fee, setFee] = useState<any>(0);
 
+  
   useEffect(() => {
     const auth = getCookie("authData");
     if (auth) {
@@ -102,38 +103,43 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
       return fee;
     }
   };
+
   useEffect(() => {
     if (hireFrom && hireTo) {
       const period = calculateTimePeriod(hireFrom, hireTo);
       setTimePeriod(period);
     }
   }, [hireFrom, hireTo]);
+
   useEffect(() => {
     if (salary) {
       const fee = calculateFee(Number(salary));
       setFee(fee);
     }
   }, [salary]);
+
+  const extractTimeIn12HourFormat = (date: Date | null): string => {
+    if (!date) return "";
+
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? "PM" : "AM";
+    const hour12 = hours % 12 || 12; // Convert to 12-hour format
+
+    return `${hour12}:${String(minutes).padStart(2, "0")} ${period}`;
+  };
+
   const handleDateChange = (date: Date | null, type: "from" | "to") => {
     if (type === "from") {
       setHireFrom(date);
+      if (date) {
+        setShiftFrom(extractTimeIn12HourFormat(date));
+      }
     } else {
       setHireTo(date);
-    }
-  };
-
-  const convertTo12HourFormat = (time: string): string => {
-    const [hours, minutes] = time.split(":");
-    const period = Number(hours) >= 12 ? "PM" : "AM";
-    const hour = Number(hours) % 12 || 12;
-    return `${hour}:${minutes} ${period}`;
-  };
-
-  const handleShiftTimeChange = (type: "from" | "to", value: string) => {
-    if (type === "from") {
-      setShiftFrom(convertTo12HourFormat(value));
-    } else {
-      setShiftTo(convertTo12HourFormat(value));
+      if (date) {
+        setShiftTo(extractTimeIn12HourFormat(date));
+      }
     }
   };
 
@@ -150,8 +156,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
       Authorization: `Bearer ${authdata?.token}`,
       "Content-Type": "application/json",
     };
-    console.log(hireFrom);
-    console.log(hireTo);
 
     const bodyContent = JSON.stringify({
       position,
@@ -159,8 +163,8 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
       postGraduateCourses: selectedPGCourses.join(", "),
       specializations: selectedSpecializations.join(", "),
       hire: hire.toUpperCase(),
-      hire_from: hireFrom,
-      hire_to: hireTo,
+      hire_from: hireFrom?.toISOString(),
+      hire_to: hireTo?.toISOString(),
       time_period: timePeriod,
       salary: Number(salary),
       job_description: jobDescription,
@@ -225,7 +229,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             onChange={(e) => setPosition(e.target.value)}
           />
         </div>
-
         <div>
           <label className="block font-medium dark:text-white">
             Hire Doctor/Nurse
@@ -239,7 +242,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             <option value="Nurse">Nurse</option>
           </select>
         </div>
-
         {hire === "Doctor" ? (
           <>
             <div>
@@ -313,23 +315,27 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             </div>
           </>
         )}
-
-        <div>
+        <div className="w-full">
           <label className="block font-medium dark:text-white">
-            Hire from date
+            Hire from date & Shift from time
           </label>
           <DatePicker
             selected={hireFrom}
-            onChange={(date: Date | null) => handleDateChange(date, "from")}
-            dateFormat="dd/MM/yyyy"
+            onChange={(date: Date | null) => {
+              handleDateChange(date, "from");
+            }}
+            dateFormat="dd/MM/yyyy h:mm aa"
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            timeCaption="Shift from"
             minDate={new Date()}
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholderText="Select start date"
+            placeholderText="Select start date and time"
             isClearable
           />
         </div>
-
-        <div>
+        {/* <div>
           <label className="block font-medium dark:text-white">
             Shift Time From
           </label>
@@ -338,24 +344,29 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             onChange={(e) => handleShiftTimeChange("from", e.target.value)}
           />
-        </div>
-
-        <div>
+        </div> */}
+        <div className="w-full">
           <label className="block font-medium dark:text-white">
-            Hire to date
+            Hire to date & Shift to time
           </label>
           <DatePicker
             selected={hireTo}
-            onChange={(date: Date | null) => handleDateChange(date, "to")}
-            dateFormat="dd/MM/yyyy"
-            minDate={hireFrom || new Date()}
+            onChange={(date: Date | null) => {
+              handleDateChange(date, "to");
+            }}
+            dateFormat="dd/MM/yyyy h:mm aa" // Format for date and time
+            showTimeSelect // Enable time selection
+            timeFormat="HH:mm" // Time format (24-hour format)
+            timeIntervals={15} // Time intervals in minutes (optional)
+            timeCaption="Shift to" // Caption for the time dropdown
+            minDate={hireFrom || new Date()} // Minimum date
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholderText="Select end date"
+            placeholderText="Select end date and time"
             isClearable
           />
         </div>
 
-        <div>
+        {/* <div>
           <label className="block font-medium dark:text-white">
             Shift Time To
           </label>
@@ -364,8 +375,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             onChange={(e) => handleShiftTimeChange("to", e.target.value)}
           />
-        </div>
-
+        </div> */}
         {timePeriod && (
           <div>
             <label className="block font-medium dark:text-white">
@@ -374,7 +384,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             <p className="dark:text-white">{timePeriod}</p>
           </div>
         )}
-
         <div>
           <label className="block font-medium dark:text-white">Salary</label>
           <input
@@ -391,7 +400,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             salary, whichever is lower, will be charged upon hiring.{" "}
           </span>
         </div>
-
         <div>
           <label className="block font-medium dark:text-white">
             Job Description
