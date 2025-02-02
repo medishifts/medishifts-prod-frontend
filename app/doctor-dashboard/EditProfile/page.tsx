@@ -1554,7 +1554,7 @@ export default function EditProfileComponent(props: any) {
                 {/* Degree Certificate */}
                 <div>
                   <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Upload Passing Certificate
+                    Upload Passing / Degree Certificate
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -1571,7 +1571,7 @@ export default function EditProfileComponent(props: any) {
                   >
                     {isDegreeCertUploaded
                       ? "Degree Certificate Uploaded"
-                      : "Upload Degree Certificate"}
+                      : "Upload Passing / Degree Certificate"}
                   </button>
                 </div>
               </div>
@@ -2015,7 +2015,7 @@ export default function EditProfileComponent(props: any) {
                 {/* Degree Certificate */}
                 <div>
                   <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
-                    Upload Passing Certificate
+                    Upload Passing / Degree Certificate
                     <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -2032,11 +2032,11 @@ export default function EditProfileComponent(props: any) {
                   >
                     {isDegreeCertUploaded
                       ? "Degree Certificate Uploaded"
-                      : "Upload Degree Certificate"}
+                      : "Upload Passing / Degree Certificate"}
                   </button>
                   {fieldErrors.degreeCert && (
                     <p className="text-red-500 mt-1">
-                      Degree Certificate is required
+                      Passing / Degree Certificate is required
                     </p>
                   )}
                 </div>
