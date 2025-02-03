@@ -315,25 +315,32 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             </div>
           </>
         )}
-        <div className="w-full">
-          <label className="block font-medium dark:text-white">
+       <div className="w-full max-w-md mx-auto">
+          <label className="block text-bold font-medium mb-2 dark:text-white">
             Hire from date & Shift from time
           </label>
-          <DatePicker
-            selected={hireFrom}
-            onChange={(date: Date | null) => {
-              handleDateChange(date, "from");
-            }}
-            dateFormat="dd/MM/yyyy h:mm aa"
-            showTimeSelect
-            timeFormat="HH:mm"
-            timeIntervals={15}
-            timeCaption="Shift from"
-            minDate={new Date()}
-            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholderText="Select start date and time"
-            isClearable
-          />
+          <div className="relative">
+            <DatePicker
+              selected={hireFrom}
+              onChange={(date: Date | null) => {
+                handleDateChange(date, "from");
+              }}
+              dateFormat="dd/MM/yyyy h:mm aa"
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Shift from"
+              minDate={new Date()}
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholderText="Select start date and time"
+              isClearable
+              calendarClassName="responsive-calendar"
+              popperProps={{
+                strategy: "fixed",
+              }}
+              wrapperClassName="w-full"
+            />
+          </div>
         </div>
         {/* <div>
           <label className="block font-medium dark:text-white">
@@ -345,8 +352,8 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             onChange={(e) => handleShiftTimeChange("from", e.target.value)}
           />
         </div> */}
-        <div className="w-full">
-          <label className="block font-medium dark:text-white">
+        <div className="w-full max-w-md mx-auto">
+          <label className="block text-bold font-medium mb-2 dark:text-white">
             Hire to date & Shift to time
           </label>
           <DatePicker
@@ -363,6 +370,11 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose }) => {
             className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             placeholderText="Select end date and time"
             isClearable
+            calendarClassName="responsive-calendar"
+            popperProps={{
+              strategy: "fixed",
+            }}
+            wrapperClassName="w-full"
           />
         </div>
 
