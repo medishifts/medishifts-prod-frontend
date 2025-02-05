@@ -57,7 +57,7 @@ const App = () => {
                         : "bg-blue-100 text-blue-600"
                     }`}
                   >
-                    For Healthcare Professionals
+                    For Healthcare Professionals (Doctor / Nurse)
                   </p>
                 </CardHeader>
                 <CardBody
@@ -86,7 +86,7 @@ const App = () => {
                     className="w-full mb-2 font-semibold tracking-wide shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setProfessionalModalOpen(true)}
                   >
-                    Register as Professional(Doctor / Nurse)
+                    Register as Professional
                   </Button>
                 </CardBody>
               </Card>
