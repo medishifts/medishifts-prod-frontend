@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { stateCityData } from "../../stateCities";
 
 import { deleteCookie, getCookie } from "cookies-next";
-
+import { Spinner } from "@nextui-org/react";
 import EducationalQualificationsTable from "@/components/EducationalQualificationsTable";
 import { resetProfile } from "@/app/redux/features/profile-slice";
 import { useDispatch } from "react-redux";
@@ -145,8 +145,6 @@ const councilOptions = [
   },
 ];
 
-
-
 export default function EditProfileComponent(props: any) {
   // console.log("Props", props);
   const dispatch = useDispatch<AppDispatch>();
@@ -200,7 +198,8 @@ export default function EditProfileComponent(props: any) {
     experienceYears: false,
     selectedCouncil: false,
   });
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadedQualification, setIsUploadedQualification] = useState(false);
   const handleDelete = () => {
     setRefetchTrigger((prev) => prev + 1);
   };
@@ -214,9 +213,15 @@ export default function EditProfileComponent(props: any) {
   }, []);
   useEffect(() => {
     const fetchProfileData = async () => {
-      const record = await pb.collection("view_users").getOne(id);
-      console.log(record);
-      setSecondTimeAccUpdate(record?.isFirstTimeCompleted);
+      try {
+        setIsLoading(true); // Start loading
+        const record = await pb.collection("view_users").getOne(id);
+        setSecondTimeAccUpdate(record?.isFirstTimeCompleted);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      } finally {
+        setIsLoading(false); // Stop loading
+      }
     };
     fetchProfileData();
   }, []);
@@ -260,7 +265,6 @@ export default function EditProfileComponent(props: any) {
   ) => {
     setSelectedSpecialization(e.target.value);
   };
-  
 
   const handleCouncilChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCouncil(event.target.value);
@@ -300,7 +304,40 @@ export default function EditProfileComponent(props: any) {
       resolve();
     });
   };
-  const handleEducationalDetails = async () => {
+  const handleEducationalDetailsFirst = async () => {
+    if (!selectedDegree || !selectedPGCourse || !selectedSpecialization) {
+      toast.error("Please select all educational details.");
+      return;
+    }
+
+    const data = {
+      degree: selectedDegree,
+      pg: selectedPGCourse,
+      specialization: selectedSpecialization,
+      user: id,
+    };
+
+    try {
+      const record = await pb.collection("user_credentials").create(data);
+      console.log("Educational details posted successfully:", record);
+      toast.success("Educational details added successfully!");
+
+      setSelectedDegree("");
+      setSelectedPGCourse("");
+      setSelectedSpecialization("");
+      setPGCourses([]);
+      setSpecializationCourses([]);
+
+      // Trigger a refetch of the qualifications
+      setQualificationsRefetchTrigger((prev) => prev + 1);
+      setIsEducationUploaded(true);
+      setIsUploadedQualification(true);
+    } catch (error: any) {
+      console.error("Error posting educational details:", error);
+      toast.error(error.message || "An error occurred while adding details.");
+    }
+  };
+  const handleEducationalDetailsSecond = async () => {
     if (!selectedDegree || !selectedPGCourse || !selectedSpecialization) {
       toast.error("Please select all educational details.");
       return;
@@ -428,6 +465,10 @@ export default function EditProfileComponent(props: any) {
       toast.error(
         "Please fill all required fields and verify your contact number."
       );
+      return;
+    }
+    if (!isUploadedQualification) {
+      toast.error("Please save your qualifications");
       return;
     }
 
@@ -720,6 +761,60 @@ export default function EditProfileComponent(props: any) {
   );
 
   const allFieldsSelected = selectedDegree && selectedPGCourse;
+  useEffect(() => {
+    if (secondTimeAccUpdate) {
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? "animate-enter" : "animate-leave"
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <img
+                    className="h-10 w-10 rounded-full"
+                    src="/logo.png"
+                    alt="Medishifts Logo"
+                  />
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    ⚠ Profile Update Reminder
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Kindly edit or add the required fields marked with an
+                    asterisk (*) and any other necessary details. All fields do
+                    not need to be filled.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    }
+  }, [secondTimeAccUpdate]);
+  if (isLoading) {
+    return (
+      <div className="flex h-screen justify-center items-center ">
+        <Spinner />
+      </div>
+    ); // Show loader until data is fetched
+  }
+  // if (secondTimeAccUpdate) {
+  //   toast.wa;
+  // }
   return (
     <>
       {secondTimeAccUpdate ? (
@@ -1070,7 +1165,7 @@ export default function EditProfileComponent(props: any) {
                     selectedSpecialization && (
                       <div className="flex-1 min-w-[200px] flex items-end">
                         <button
-                          onClick={handleEducationalDetails}
+                          onClick={handleEducationalDetailsSecond}
                           className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                           Save Qualification
@@ -1524,7 +1619,7 @@ export default function EditProfileComponent(props: any) {
                     selectedSpecialization && (
                       <div className="flex-1 min-w-[200px] flex items-end">
                         <button
-                          onClick={handleEducationalDetails}
+                          onClick={handleEducationalDetailsFirst}
                           className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                           Save Qualification
