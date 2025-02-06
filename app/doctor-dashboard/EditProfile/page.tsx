@@ -962,7 +962,7 @@ export default function EditProfileComponent(props: any) {
     console.log("Critical Fields Present:", criticalFieldsPresent);
 
     const profileData = {
-      name: !name.startsWith("Dr.") ? `Dr. ${name}` : name,
+      name: name && !name.startsWith("Dr.") ? `Dr. ${name}` : name,
       dob,
       mobile,
       state: selectedState,
