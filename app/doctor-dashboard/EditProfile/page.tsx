@@ -1634,7 +1634,7 @@ export default function EditProfileComponent(props: any) {
                   <input
                     required
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf, .png, .jpeg, .jpg"
                     onChange={(e) => setRegCert(e.target.files?.[0] || null)}
                     className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
                   />
@@ -1658,7 +1658,7 @@ export default function EditProfileComponent(props: any) {
                   <input
                     required
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf, .png, .jpeg, .jpg"
                     onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
                     className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
                   />
@@ -2090,7 +2090,7 @@ export default function EditProfileComponent(props: any) {
                   <input
                     required
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf, .png, .jpeg, .jpg"
                     onChange={(e) => setRegCert(e.target.files?.[0] || null)}
                     className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
                   />
@@ -2119,7 +2119,7 @@ export default function EditProfileComponent(props: any) {
                   <input
                     required
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf, .png, .jpeg, .jpg"
                     onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
                     className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
                   />
