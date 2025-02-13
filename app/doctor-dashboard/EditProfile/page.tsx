@@ -3,7 +3,7 @@ import { AppDispatch, useAppSelector } from "@/app/redux/store";
 import pb from "@/utils/pocketbase-connect";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { stateCityData } from "../../stateCities";
+import { stateCityData } from "@/app/stateCities";
 import { deleteCookie, getCookie } from "cookies-next";
 import { educationalQualifications } from "../../educationalQualifications";
 import EducationalQualificationsTable from "@/components/EducationalQualificationsTable";
