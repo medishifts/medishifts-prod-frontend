@@ -1,375 +1,2156 @@
 "use client";
-import Footer from "@/components/footer";
-import PricingSection from "@/components/pricing";
-import Sponsors from "@/components/sponsors";
-import Achievements from "@/components/stats";
-import TestimonialSection from "@/components/testimonials";
-import Image from "next/image";
-import { useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
-import { setNotifications } from "@/app/redux/features/notifications-slice";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/app/redux/store";
+import { AppDispatch, useAppSelector } from "@/app/redux/store";
 import pb from "@/utils/pocketbase-connect";
-// type NotificationRecord = {
-//   id: string;
-//   collectionId: string;
-//   collectionName: string;
-//   created: string;
-//   message: string;
-//   read_receipt: string;
-//   sender: string;
-//   title: string;
-//   updated: string;
-//   url: string;
-//   user: string;
-// };
+import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { stateCityData } from "../../stateCities";
+import { deleteCookie, getCookie } from "cookies-next";
+import { educationalQualifications } from "../../educationalQualifications";
+import EducationalQualificationsTable from "@/components/EducationalQualificationsTable";
+import { resetProfile } from "@/app/redux/features/profile-slice";
+import { useDispatch } from "react-redux";
 
-// type NotificationItem = {
-//   id: string;
-//   collectionId: string;
-//   collectionName: string;
-//   created: string;
-//   message: string;
-//   read_receipt: string;
-//   sender: string;
-//   title: string;
-//   updated: string;
-//   url: string;
-//   user: string;
-// };
-const steps = [
-  {
-    title: "Add your databases",
-    description: "Use your own Notion databases or duplicate ours.",
-    icon: (
-      <svg
-        className="h-5 w-5 text-gray-600 group-hover:text-white"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M21 12C21 13.6569 16.9706 15 12 15C7.02944 15 3 13.6569 3 12M21 5C21 6.65685 16.9706 8 12 8C7.02944 8 3 6.65685 3 5M21 5C21 3.34315 16.9706 2 12 2C7.02944 2 3 3.34315 3 5M21 5V19C21 20.6569 16.9706 22 12 22C7.02944 22 3 20.6569 3 19V5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-        />
-      </svg>
-    ),
-  },
-  // Other steps...
-];
+import { Spinner } from "@nextui-org/react";
 
-export default function Home() {
+type Degree = keyof typeof educationalQualifications.degrees; // 'MBBS' | 'BAMS' etc.
+type PGCourses =
+  keyof (typeof educationalQualifications.degrees)[Degree]["postgraduateCourses"];
+type SpecializationCourses = string[];
+type DegreeOptions = "Not Applicable" | "MBBS" | "BHMS" | "BAMS" | "BDS";
+const typedStateCityData = stateCityData as StateCityData;
+
+type StateCityData = {
+  [state: string]: string[];
+};
+
+const councilOptions = {
+  "Not Applicable": [
+    {
+      key: "Not Applicable",
+      name: "Not Applicable",
+    },
+  ],
+  MBBS: [
+    {
+      key: "Andhra Pradesh Medical Council (APMC)",
+      name: "Andhra Pradesh Medical Council (APMC)",
+    },
+    {
+      key: "Arunachal Pradesh State Medical Council (APSMC)",
+      name: "Arunachal Pradesh State Medical Council (APSMC)",
+    },
+    {
+      key: "Assam State Medical Council (ASMC)",
+      name: "Assam State Medical Council (ASMC)",
+    },
+    {
+      key: "Bihar State Medical Council (BSMC)",
+      name: "Bihar State Medical Council (BSMC)",
+    },
+    {
+      key: "Chhattisgarh State Medical Council (CGMC)",
+      name: "Chhattisgarh State Medical Council (CGMC)",
+    },
+    {
+      key: "Delhi Medical Council (DMC)",
+      name: "Delhi Medical Council (DMC)",
+    },
+    {
+      key: "Goa Medical Council (GMC)",
+      name: "Goa Medical Council (GMC)",
+    },
+    {
+      key: "Gujarat Medical Council (GMC)",
+      name: "Gujarat Medical Council (GMC)",
+    },
+    {
+      key: "Haryana State Medical Council (HSMC)",
+      name: "Haryana State Medical Council (HSMC)",
+    },
+    {
+      key: "Himachal Pradesh State Medical Council (HPMC)",
+      name: "Himachal Pradesh State Medical Council (HPMC)",
+    },
+    {
+      key: "Jammu & Kashmir Medical Council (JKMC)",
+      name: "Jammu & Kashmir Medical Council (JKMC)",
+    },
+    {
+      key: "Jharkhand State Medical Council (JSMC)",
+      name: "Jharkhand State Medical Council (JSMC)",
+    },
+    {
+      key: "Karnataka Medical Council (KMC)",
+      name: "Karnataka Medical Council (KMC)",
+    },
+    {
+      key: "Kerala Medical Council (TCMC)",
+      name: "Kerala Medical Council (TCMC)",
+    },
+    {
+      key: "Madhya Pradesh Medical Council (MPMC)",
+      name: "Madhya Pradesh Medical Council (MPMC)",
+    },
+    {
+      key: "Maharashtra Medical Council (MMC)",
+      name: "Maharashtra Medical Council (MMC)",
+    },
+    {
+      key: "Manipur State Medical Council (MSMC)",
+      name: "Manipur State Medical Council (MSMC)",
+    },
+    {
+      key: "Meghalaya State Medical Council (MGMC)",
+      name: "Meghalaya State Medical Council (MGMC)",
+    },
+    {
+      key: "Mizoram Medical Council (MMC)",
+      name: "Mizoram Medical Council (MMC)",
+    },
+    {
+      key: "Nagaland Medical Council (NMC)",
+      name: "Nagaland Medical Council (NMC)",
+    },
+    {
+      key: "Odisha State Medical Council (OSMC)",
+      name: "Odisha State Medical Council (OSMC)",
+    },
+    {
+      key: "Punjab State Medical Council (PMC)",
+      name: "Punjab State Medical Council (PMC)",
+    },
+    {
+      key: "Rajasthan Medical Council (RMC)",
+      name: "Rajasthan Medical Council (RMC)",
+    },
+    {
+      key: "Sikkim Medical Council (SMC)",
+      name: "Sikkim Medical Council (SMC)",
+    },
+    {
+      key: "Tamil Nadu Medical Council (TNMC)",
+      name: "Tamil Nadu Medical Council (TNMC)",
+    },
+    {
+      key: "Telangana State Medical Council (TSMC)",
+      name: "Telangana State Medical Council (TSMC)",
+    },
+    {
+      key: "Tripura State Medical Council (TSMC)",
+      name: "Tripura State Medical Council (TSMC)",
+    },
+    {
+      key: "Uttar Pradesh State Medical Council (UPMC)",
+      name: "Uttar Pradesh State Medical Council (UPMC)",
+    },
+    {
+      key: "West Bengal Medical Council (WBMC)",
+      name: "West Bengal Medical Council (WBMC)",
+    },
+    {
+      key: "Uttarakhand Medical Council (UKMC)",
+      name: "Uttarakhand Medical Council (UKMC)",
+    },
+    {
+      key: "Nagaland Medical Council (NMC)",
+      name: "Nagaland Medical Council (NMC)",
+    },
+  ],
+  BHMS: [
+    {
+      key: "Andhra Pradesh State Board of Homeopathy (APSBH)",
+      name: "Andhra Pradesh State Board of Homeopathy (APSBH)",
+    },
+    {
+      key: "Arunachal Pradesh Board of Homeopathy (APBH)",
+      name: "Arunachal Pradesh Board of Homeopathy (APBH)",
+    },
+    {
+      key: "Assam State Board of Homeopathy (ASBH)",
+      name: "Assam State Board of Homeopathy (ASBH)",
+    },
+    {
+      key: "Bihar State Homeopathic Medical Council (BSHMC)",
+      name: "Bihar State Homeopathic Medical Council (BSHMC)",
+    },
+    {
+      key: "Chhattisgarh Board of Homeopathy (CGBH)",
+      name: "Chhattisgarh Board of Homeopathy (CGBH)",
+    },
+    {
+      key: "Delhi Board of Homeopathic System of Medicine (DBHSM)",
+      name: "Delhi Board of Homeopathic System of Medicine (DBHSM)",
+    },
+    {
+      key: "Goa Board of Homeopathy (GBH)",
+      name: "Goa Board of Homeopathy (GBH)",
+    },
+    {
+      key: "Gujarat Council of Homeopathy (GCH)",
+      name: "Gujarat Council of Homeopathy (GCH)",
+    },
+    {
+      key: "Haryana State Board of Homeopathic System of Medicine (HSBHSM)",
+      name: "Haryana State Board of Homeopathic System of Medicine (HSBHSM)",
+    },
+    {
+      key: "Himachal Pradesh Board of Homeopathy (HPBH)",
+      name: "Himachal Pradesh Board of Homeopathy (HPBH)",
+    },
+    {
+      key: "Jammu & Kashmir Board of Homeopathy (JKBH)",
+      name: "Jammu & Kashmir Board of Homeopathy (JKBH)",
+    },
+    {
+      key: "Jharkhand State Homeopathic Medical Council (JSHMC)",
+      name: "Jharkhand State Homeopathic Medical Council (JSHMC)",
+    },
+    {
+      key: "Karnataka Board of Homeopathy (KBH)",
+      name: "Karnataka Board of Homeopathy (KBH)",
+    },
+    {
+      key: "Kerala State Homeopathic Medical Council (KSHMC)",
+      name: "Kerala State Homeopathic Medical Council (KSHMC)",
+    },
+    {
+      key: "Madhya Pradesh State Homeopathic Council (MPSHC)",
+      name: "Madhya Pradesh State Homeopathic Council (MPSHC)",
+    },
+    {
+      key: "Maharashtra Council of Homeopathy (MCH)",
+      name: "Maharashtra Council of Homeopathy (MCH)",
+    },
+    {
+      key: "Manipur State Board of Homeopathy (MSBH)",
+      name: "Manipur State Board of Homeopathy (MSBH)",
+    },
+    {
+      key: "Meghalaya State Homeopathic Council (MGSHC)",
+      name: "Meghalaya State Homeopathic Council (MGSHC)",
+    },
+    {
+      key: "Mizoram Board of Homeopathy (MZBH)",
+      name: "Mizoram Board of Homeopathy (MZBH)",
+    },
+    {
+      key: "Nagaland Board of Homeopathy (NGBH)",
+      name: "Nagaland Board of Homeopathy (NGBH)",
+    },
+    {
+      key: "Odisha State Homeopathic Medical Council (OSHMC)",
+      name: "Odisha State Homeopathic Medical Council (OSHMC)",
+    },
+    {
+      key: "Punjab State Homeopathic Medical Council (PSHMC)",
+      name: "Punjab State Homeopathic Medical Council (PSHMC)",
+    },
+    {
+      key: "Rajasthan Board of Homeopathic Medicine (RBHM)",
+      name: "Rajasthan Board of Homeopathic Medicine (RBHM)",
+    },
+    {
+      key: "Sikkim State Homeopathic Council (SKSHC)",
+      name: "Sikkim State Homeopathic Council (SKSHC)",
+    },
+    {
+      key: "Tamil Nadu Homeopathic Medical Council (TNHMC)",
+      name: "Tamil Nadu Homeopathic Medical Council (TNHMC)",
+    },
+    {
+      key: "Telangana State Homeopathic Council (TSHC)",
+      name: "Telangana State Homeopathic Council (TSHC)",
+    },
+    {
+      key: "Tripura Homeopathic Medical Council (TPHMC)",
+      name: "Tripura Homeopathic Medical Council (TPHMC)",
+    },
+    {
+      key: "Uttar Pradesh Homeopathic Medical Council (UPHMC)",
+      name: "Uttar Pradesh Homeopathic Medical Council (UPHMC)",
+    },
+    {
+      key: "Uttarakhand Homeopathic Medical Council (UKHMC)",
+      name: "Uttarakhand Homeopathic Medical Council (UKHMC)",
+    },
+    {
+      key: "West Bengal Council of Homeopathy (WBCH)",
+      name: "West Bengal Council of Homeopathy (WBCH)",
+    },
+    {
+      key: "Chandigarh Homeopathic Council (CHC)",
+      name: "Chandigarh Homeopathic Council (CHC)",
+    },
+    {
+      key: "Puducherry Homeopathic Medical Council (PHMC)",
+      name: "Puducherry Homeopathic Medical Council (PHMC)",
+    },
+    {
+      key: "Andaman & Nicobar Homeopathic Council (ANHC)",
+      name: "Andaman & Nicobar Homeopathic Council (ANHC)",
+    },
+    {
+      key: "Dadra & Nagar Haveli Homeopathic Council (DNHHC)",
+      name: "Dadra & Nagar Haveli Homeopathic Council (DNHHC)",
+    },
+    {
+      key: "Lakshadweep Homeopathic Council (LHC)",
+      name: "Lakshadweep Homeopathic Council (LHC)",
+    },
+    {
+      key: "Daman and Diu Homeopathic Council (DDHC)",
+      name: "Daman and Diu Homeopathic Council (DDHC)",
+    },
+  ],
+  BAMS: [
+    {
+      key: "Andhra Pradesh Board of Indian Medicine (APBIM)",
+      name: "Andhra Pradesh Board of Indian Medicine (APBIM)",
+    },
+    {
+      key: "Arunachal Pradesh State Ayurvedic and Unani Council (APSAUC)",
+      name: "Arunachal Pradesh State Ayurvedic and Unani Council (APSAUC)",
+    },
+    {
+      key: "Assam Ayurvedic Council (AAC)",
+      name: "Assam Ayurvedic Council (AAC)",
+    },
+    {
+      key: "Bihar State Ayurvedic and Unani Medical Council (BSAUMC)",
+      name: "Bihar State Ayurvedic and Unani Medical Council (BSAUMC)",
+    },
+    {
+      key: "Chhattisgarh Ayurvedic, Unani & Naturopathy Medical Board (CGANMB)",
+      name: "Chhattisgarh Ayurvedic, Unani & Naturopathy Medical Board (CGANMB)",
+    },
+    {
+      key: "Delhi Bharatiya Chikitsa Parishad (DBCP)",
+      name: "Delhi Bharatiya Chikitsa Parishad (DBCP)",
+    },
+    {
+      key: "Goa Board of Indian Medicine (GBIM)",
+      name: "Goa Board of Indian Medicine (GBIM)",
+    },
+    {
+      key: "Gujarat Board of Ayurvedic & Unani Systems of Medicine (GBAUSM)",
+      name: "Gujarat Board of Ayurvedic & Unani Systems of Medicine (GBAUSM)",
+    },
+    {
+      key: "Haryana Board of Ayurvedic and Unani Systems of Medicine (HBAUSM)",
+      name: "Haryana Board of Ayurvedic and Unani Systems of Medicine (HBAUSM)",
+    },
+    {
+      key: "Himachal Pradesh Ayurvedic and Unani Practitioners Board (HPAUPB)",
+      name: "Himachal Pradesh Ayurvedic and Unani Practitioners Board (HPAUPB)",
+    },
+    {
+      key: "Jammu & Kashmir Ayurvedic, Unani, and Homoeopathy Council (JKAUHC)",
+      name: "Jammu & Kashmir Ayurvedic, Unani, and Homoeopathy Council (JKAUHC)",
+    },
+    {
+      key: "Jharkhand State Ayurvedic Medical Board (JSAMB)",
+      name: "Jharkhand State Ayurvedic Medical Board (JSAMB)",
+    },
+    {
+      key: "Karnataka Ayurvedic and Unani Practitioners Board (KAUPB)",
+      name: "Karnataka Ayurvedic and Unani Practitioners Board (KAUPB)",
+    },
+    {
+      key: "Kerala State Ayurveda Medical Council (KSAMC)",
+      name: "Kerala State Ayurveda Medical Council (KSAMC)",
+    },
+    {
+      key: "Madhya Pradesh Ayurvedic and Unani Practitioners Board (MPAUPB)",
+      name: "Madhya Pradesh Ayurvedic and Unani Practitioners Board (MPAUPB)",
+    },
+    {
+      key: "Maharashtra Council of Indian Medicine (MCIM)",
+      name: "Maharashtra Council of Indian Medicine (MCIM)",
+    },
+    {
+      key: "Manipur State Ayurvedic and Unani Council (MSAUC)",
+      name: "Manipur State Ayurvedic and Unani Council (MSAUC)",
+    },
+    {
+      key: "Meghalaya State Board of Ayurveda (MSBA)",
+      name: "Meghalaya State Board of Ayurveda (MSBA)",
+    },
+    {
+      key: "Mizoram State Council of Ayurveda and Unani Medicine (MSC)",
+      name: "Mizoram State Council of Ayurveda and Unani Medicine (MSC)",
+    },
+    {
+      key: "Nagaland Board of Indian Medicine (NBIM)",
+      name: "Nagaland Board of Indian Medicine (NBIM)",
+    },
+    {
+      key: "Odisha State Council of Ayurvedic and Unani Medicine (OSCAUM)",
+      name: "Odisha State Council of Ayurvedic and Unani Medicine (OSCAUM)",
+    },
+    {
+      key: "Punjab Ayurvedic and Unani Practitioners Board (PAUPB)",
+      name: "Punjab Ayurvedic and Unani Practitioners Board (PAUPB)",
+    },
+    {
+      key: "Rajasthan Ayurvedic, Unani, Homoeopathy, and Naturopathy Medicine Board (RAUHNM)",
+      name: "Rajasthan Ayurvedic, Unani, Homoeopathy, and Naturopathy Medicine Board (RAUHNM)",
+    },
+    {
+      key: "Sikkim Ayurvedic Council (SAC)",
+      name: "Sikkim Ayurvedic Council (SAC)",
+    },
+    {
+      key: "Tamil Nadu Board of Indian Medicine (TNBIM)",
+      name: "Tamil Nadu Board of Indian Medicine (TNBIM)",
+    },
+    {
+      key: "Telangana State Ayurvedic and Unani Medical Board (TSAUMB)",
+      name: "Telangana State Ayurvedic and Unani Medical Board (TSAUMB)",
+    },
+    {
+      key: "Tripura State Ayurvedic Council (TSAC)",
+      name: "Tripura State Ayurvedic Council (TSAC)",
+    },
+    {
+      key: "Uttar Pradesh State Ayurvedic and Unani Medical Board (UPSAUMB)",
+      name: "Uttar Pradesh State Ayurvedic and Unani Medical Board (UPSAUMB)",
+    },
+    {
+      key: "West Bengal Ayurvedic Council (WBAC)",
+      name: "West Bengal Ayurvedic Council (WBAC)",
+    },
+  ],
+  BDS: [
+    {
+      key: "Andhra Pradesh State Dental Council (APSDC)",
+      name: "Andhra Pradesh State Dental Council (APSDC)",
+    },
+    {
+      key: "Arunachal Pradesh Dental Council (APDC)",
+      name: "Arunachal Pradesh Dental Council (APDC)",
+    },
+    {
+      key: "Assam State Dental Council (ASDC)",
+      name: "Assam State Dental Council (ASDC)",
+    },
+    {
+      key: "Bihar State Dental Council (BSDC)",
+      name: "Bihar State Dental Council (BSDC)",
+    },
+    {
+      key: "Chhattisgarh State Dental Council (CGSDC)",
+      name: "Chhattisgarh State Dental Council (CGSDC)",
+    },
+    {
+      key: "Delhi State Dental Council (DSDC)",
+      name: "Delhi State Dental Council (DSDC)",
+    },
+    {
+      key: "Goa State Dental Council (GSDC)",
+      name: "Goa State Dental Council (GSDC)",
+    },
+    {
+      key: "Gujarat State Dental Council (GJSDC)",
+      name: "Gujarat State Dental Council (GJSDC)",
+    },
+    {
+      key: "Haryana State Dental Council (HSDC)",
+      name: "Haryana State Dental Council (HSDC)",
+    },
+    {
+      key: "Himachal Pradesh State Dental Council (HPSDC)",
+      name: "Himachal Pradesh State Dental Council (HPSDC)",
+    },
+    {
+      key: "Jammu & Kashmir State Dental Council (JKSDC)",
+      name: "Jammu & Kashmir State Dental Council (JKSDC)",
+    },
+    {
+      key: "Jharkhand State Dental Council (JSDC)",
+      name: "Jharkhand State Dental Council (JSDC)",
+    },
+    {
+      key: "Karnataka State Dental Council (KSDC)",
+      name: "Karnataka State Dental Council (KSDC)",
+    },
+    {
+      key: "Kerala State Dental Council (KLSDC)",
+      name: "Kerala State Dental Council (KLSDC)",
+    },
+    {
+      key: "Madhya Pradesh State Dental Council (MPSDC)",
+      name: "Madhya Pradesh State Dental Council (MPSDC)",
+    },
+    {
+      key: "Maharashtra State Dental Council (MHSDC)",
+      name: "Maharashtra State Dental Council (MHSDC)",
+    },
+    {
+      key: "Manipur State Dental Council (MNSDC)",
+      name: "Manipur State Dental Council (MNSDC)",
+    },
+    {
+      key: "Meghalaya State Dental Council (MGSDC)",
+      name: "Meghalaya State Dental Council (MGSDC)",
+    },
+    {
+      key: "Mizoram State Dental Council (MZSDC)",
+      name: "Mizoram State Dental Council (MZSDC)",
+    },
+    {
+      key: "Nagaland State Dental Council (NLSDC)",
+      name: "Nagaland State Dental Council (NLSDC)",
+    },
+    {
+      key: "Odisha State Dental Council (OSDC)",
+      name: "Odisha State Dental Council (OSDC)",
+    },
+    {
+      key: "Punjab State Dental Council (PSDC)",
+      name: "Punjab State Dental Council (PSDC)",
+    },
+    {
+      key: "Rajasthan State Dental Council (RJSDC)",
+      name: "Rajasthan State Dental Council (RJSDC)",
+    },
+    {
+      key: "Sikkim State Dental Council (SKSDC)",
+      name: "Sikkim State Dental Council (SKSDC)",
+    },
+    {
+      key: "Tamil Nadu State Dental Council (TNSDC)",
+      name: "Tamil Nadu State Dental Council (TNSDC)",
+    },
+    {
+      key: "Telangana State Dental Council (TSDSC)",
+      name: "Telangana State Dental Council (TSDSC)",
+    },
+    {
+      key: "Tripura State Dental Council (TPSDC)",
+      name: "Tripura State Dental Council (TPSDC)",
+    },
+    {
+      key: "Uttar Pradesh State Dental Council (UPSDC)",
+      name: "Uttar Pradesh State Dental Council (UPSDC)",
+    },
+    {
+      key: "West Bengal State Dental Council (WBSDC)",
+      name: "West Bengal State Dental Council (WBSDC)",
+    },
+  ],
+};
+
+export default function EditProfileComponent(props: any) {
   const dispatch = useDispatch<AppDispatch>();
+  const id = useAppSelector((state) => state.profileReducer.value.id);
+
+  const [authdata, setAuthData] = useState<any>("");
+  const [name, setName] = useState<any>(null);
+  const [dob, setDob] = useState<any>(null);
+  const [mobile, setMobile] = useState<any>(null);
+  const [email, setEmail] = useState<any>(null);
+  const [selectedState, setSelectedState] = useState<any>(null);
+  const [selectedCity, setSelectedCity] = useState<any>(null);
+  const [address, setAddress] = useState<any>(null);
+  const [registrationNumber, setRegistrationNumber] = useState<any>(null);
+  const [selectedCouncil, setSelectedCouncil] = useState<any>(null);
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [regCert, setRegCert] = useState<File | null>(null);
+  const [degreeCert, setDegreeCert] = useState<File | null>(null);
+  const [experience, setExperience] = useState<any>(null);
+  const [bio, setBio] = useState<any>(null); // New state for bio
+  const [isPhotoUploaded, setIsPhotoUploaded] = useState(false);
+  const [isRegCertUploaded, setIsRegCertUploaded] = useState(false);
+  const [isDegreeCertUploaded, setIsDegreeCertUploaded] = useState(false);
+  const [experienceYears, setExperienceYears] = useState<any>(null);
+  const [selectedDegree, setSelectedDegree] = useState<Degree | "">("");
+  const [selectedPGCourse, setSelectedPGCourse] = useState<PGCourses | "">("");
+  const [selectedSpecialization, setSelectedSpecialization] =
+    useState("Not Applicable");
+  const [pgCourses, setPGCourses] = useState<PGCourses[]>([]);
+  const [specializationCourses, setSpecializationCourses] =
+    useState<SpecializationCourses>([]);
+  const [qualificationsRefetchTrigger, setQualificationsRefetchTrigger] =
+    useState<number>(0);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const [isOtpVisible, setIsOtpVisible] = useState(false);
+  const [otp, setOtp] = useState<any>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [isContactVerified, setIsContactVerified] = useState(false);
+  const [isEducationUploaded, setIsEducationUploaded] = useState(false);
+  const [secondTimeAccUpdate, setSecondTimeAccUpdate] = useState(false);
+  const [selectedDegforCouncil, setSelectedDegforCouncil] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    dob: false,
+    mobile: false,
+    selectedState: false,
+    selectedCity: false,
+    address: false,
+    profilePhoto: false,
+    degreeCert: false,
+    regCert: false,
+    registrationNumber: false,
+    experience: false,
+    experienceYears: false,
+    selectedCouncil: false,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadedQualification, setIsUploadedQualification] = useState(false);
+  const handleDelete = () => {
+    setRefetchTrigger((prev) => prev + 1);
+  };
 
   useEffect(() => {
-    AOS.init({
-      duration: 1000, // Duration of animations in milliseconds
-      once: true, // Whether animation should happen only once
-    });
+    const data = getCookie("authData");
+    if (data) {
+      const authData = JSON.parse(data as string);
+      authData && setAuthData(authData);
+    }
   }, []);
-  const steps = [
-    {
-      title: "Add your databases",
-      description: "Use your own Notion databases or duplicate ours.",
-      icon: (
-        <svg
-          className="h-5 w-5 text-gray-600 group-hover:text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M21 12C21 13.6569 16.9706 15 12 15C7.02944 15 3 13.6569 3 12M21 5C21 6.65685 16.9706 8 12 8C7.02944 8 3 6.65685 3 5M21 5C21 3.34315 16.9706 2 12 2C7.02944 2 3 3.34315 3 5M21 5V19C21 20.6569 16.9706 22 12 22C7.02944 22 3 20.6569 3 19V5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Map your fields",
-      description: "Map your Notion fields with Feather fields.",
-      icon: (
-        <svg
-          className="h-5 w-5 text-gray-600 group-hover:text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M2 3L2 21M22 3V21M11.8 20H12.2C13.8802 20 14.7202 20 15.362 19.673C15.9265 19.3854 16.3854 18.9265 16.673 18.362C17 17.7202 17 16.8802 17 15.2V8.8C17 7.11984 17 6.27976 16.673 5.63803C16.3854 5.07354 15.9265 4.6146 15.362 4.32698C14.7202 4 13.8802 4 12.2 4H11.8C10.1198 4 9.27976 4 8.63803 4.32698C8.07354 4.6146 7.6146 5.07354 7.32698 5.63803C7 6.27976 7 7.11984 7 8.8V15.2C7 16.8802 7 17.7202 7.32698 18.362C7.6146 18.9265 8.07354 19.3854 8.63803 19.673C9.27976 20 10.1198 20 11.8 20Z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Choose your domain",
-      description: "Choose a domain or a subdomain for your blog.",
-      icon: (
-        <svg
-          className="h-5 w-5 text-gray-600 group-hover:text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M22 12C22 17.5228 17.5228 22 12 22M22 12C22 6.47715 17.5228 2 12 2M22 12C22 9.79086 17.5228 8 12 8C6.47715 8 2 9.79086 2 12M22 12C22 14.2091 17.5228 16 12 16C6.47715 16 2 14.2091 2 12M12 22C6.47715 22 2 17.5228 2 12M12 22C14.2091 22 16 17.5228 16 12C16 6.47715 14.2091 2 12 2M12 22C9.79086 22 8 17.5228 8 12C8 6.47715 9.79086 2 12 2M2 12C2 6.47715 6.47715 2 12 2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Get your blog",
-      description: "That's it. You will get back a professional blog.",
-      icon: (
-        <svg
-          className="h-5 w-5 text-gray-600 group-hover:text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M5.50049 10.5L2.00049 7.9999L3.07849 6.92193C3.964 6.03644 4.40676 5.5937 4.9307 5.31387C5.39454 5.06614 5.90267 4.91229 6.42603 4.86114C7.01719 4.80336 7.63117 4.92617 8.85913 5.17177L10.5 5.49997M18.4999 13.5L18.8284 15.1408C19.0742 16.3689 19.1971 16.983 19.1394 17.5743C19.0883 18.0977 18.9344 18.6059 18.6867 19.0699C18.4068 19.5939 17.964 20.0367 17.0783 20.9224L16.0007 22L13.5007 18.5M7 16.9998L8.99985 15M17.0024 8.99951C17.0024 10.1041 16.107 10.9995 15.0024 10.9995C13.8979 10.9995 13.0024 10.1041 13.0024 8.99951C13.0024 7.89494 13.8979 6.99951 15.0024 6.99951C16.107 6.99951 17.0024 7.89494 17.0024 8.99951ZM17.1991 2H16.6503C15.6718 2 15.1826 2 14.7223 2.11053C14.3141 2.20853 13.9239 2.37016 13.566 2.5895C13.1623 2.83689 12.8164 3.18282 12.1246 3.87469L6.99969 9C5.90927 10.0905 5.36406 10.6358 5.07261 11.2239C4.5181 12.343 4.51812 13.6569 5.07268 14.776C5.36415 15.3642 5.90938 15.9094 6.99984 16.9998V16.9998C8.09038 18.0904 8.63565 18.6357 9.22386 18.9271C10.343 19.4817 11.6569 19.4817 12.7761 18.9271C13.3643 18.6356 13.9095 18.0903 15 16.9997L20.1248 11.8745C20.8165 11.1827 21.1624 10.8368 21.4098 10.4331C21.6291 10.0753 21.7907 9.6851 21.8886 9.27697C21.9991 8.81664 21.9991 8.32749 21.9991 7.34918V6.8C21.9991 5.11984 21.9991 4.27976 21.6722 3.63803C21.3845 3.07354 20.9256 2.6146 20.3611 2.32698C19.7194 2 18.8793 2 17.1991 2Z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-          />
-        </svg>
-      ),
-    },
-  ];
-  // const getNoti = async () => {
-  //   try {
-  //     const records: any = await pb
-  //       .collection("notifications")
-  //       .getFullList<NotificationRecord>({
-  //         filter: "read_receipt != 'READ'",
-  //       });
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true); // Start loading
+        const record = await pb.collection("view_users").getOne(id);
+        setSecondTimeAccUpdate(record?.isFirstTimeCompleted);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      } finally {
+        setIsLoading(false); // Stop loading
+      }
+    };
 
-  //     // Map PocketBase records to NotificationItem type
-  //     //@ts-ignore
-  //     const notifications: NotificationItem[] = records.map((record) => ({
-  //       id: record.id,
-  //       collectionId: record.collectionId,
-  //       collectionName: record.collectionName,
-  //       created: record.created,
-  //       message: record.message,
-  //       read_receipt: record.read_receipt,
-  //       sender: record.sender,
-  //       title: record.title,
-  //       updated: record.updated,
-  //       url: record.url,
-  //       user: record.user,
-  //     }));
+    fetchProfileData();
+  }, []);
 
-  //     dispatch(setNotifications(notifications));
-  //   } catch (error) {
-  //     console.error("Error fetching notifications:", error);
-  //     dispatch(setNotifications([]));
-  //   }
-  // };
+  const handleDegreeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const degree = e.target.value as Degree;
+    setSelectedDegree(degree);
 
-  // useEffect(() => {
-  //   getNoti();
-  // }, []);
+    // Fetch Postgraduate Courses based on selected Degree
+    if (degree) {
+      const pgOptions = Object.keys(
+        educationalQualifications.degrees[degree]?.postgraduateCourses || {}
+      ) as PGCourses[];
 
-  // useEffect(() => {
-  //   const unsubscribe = pb
-  //     .collection("notifications")
-  //     .subscribe("*", async function (e) {
-  //       await getNoti();
-  //     });
+      setPGCourses(pgOptions);
+    } else {
+      setPGCourses([]);
+    }
 
-  //   return () => {
-  //     pb.collection("notifications").unsubscribe();
-  //   };
-  // }, []);
+    // Always set PG Course and Specialization to "Not Applicable" by default
+    setSelectedPGCourse("Not Applicable");
+    setSpecializationCourses([]);
+    setSelectedSpecialization("Not Applicable");
 
+    setSelectedDegforCouncil(degree);
+    setSelectedCouncil("");
+  };
+
+  const handlePGCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pgCourse = e.target.value as PGCourses;
+    setSelectedPGCourse(pgCourse);
+
+    // Fetch specialization options if PG course is selected
+    if (pgCourse && selectedDegree) {
+      const specializationOptions =
+        educationalQualifications.degrees[selectedDegree].postgraduateCourses[
+          pgCourse
+        ];
+      setSpecializationCourses(specializationOptions);
+    } else {
+      setSpecializationCourses([]);
+    }
+
+    // Default specialization to "Not Applicable"
+    setSelectedSpecialization("Not Applicable");
+  };
+
+  const handleSpecializationChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setSelectedSpecialization(e.target.value);
+  };
+
+  const handleCouncilChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCouncil(event.target.value);
+  };
+  const relevantCouncilOptions =
+    councilOptions[selectedDegforCouncil as DegreeOptions] || [];
+
+  const validateContactNumber = () => {
+    if (mobile.length !== 10) {
+      toast.error("Contact number must be 10 digits long.");
+      return false;
+    }
+    return true;
+  };
+  const setIsDocumentUploaded = async (): Promise<void> => {
+    let headersList = {
+      Accept: "/",
+      Authorization: `Bearer ${authdata?.token}`,
+      "Content-Type": "application/json",
+    };
+
+    const bodyContent = JSON.stringify({
+      is_document_uploaded: true,
+    });
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_API}/api/user/is-document-uploaded`,
+      {
+        method: "POST",
+        body: bodyContent,
+        headers: headersList,
+      }
+    );
+
+    const data = await response.text();
+    console.log(data);
+    return new Promise((resolve) => {
+      console.log("Document marked as uploaded.");
+      resolve();
+    });
+  };
+  const handleEducationalDetailsSecond = async () => {
+    if (!selectedDegree || !selectedPGCourse || !selectedSpecialization) {
+      toast.error("Please select all educational details.");
+      return;
+    }
+
+    const data = {
+      degree: selectedDegree,
+      pg: selectedPGCourse,
+      specialization: selectedSpecialization,
+      user: id,
+    };
+
+    try {
+      const record = await pb.collection("user_credentials").create(data);
+      console.log("Educational details posted successfully:", record);
+      toast.success("Educational details added successfully!");
+
+      setSelectedDegree("");
+      setSelectedPGCourse("");
+      setSelectedSpecialization("");
+      setPGCourses([]);
+      setSpecializationCourses([]);
+
+      // Trigger a refetch of the qualifications
+      setQualificationsRefetchTrigger((prev) => prev + 1);
+      setIsEducationUploaded(true);
+      setIsUploadedQualification(true);
+    } catch (error: any) {
+      console.error("Error posting educational details:", error);
+      toast.error(error.message || "An error occurred while adding details.");
+    }
+  };
+  const handleEducationalDetailsFirst = async () => {
+    if (!selectedDegree || !selectedPGCourse || !selectedSpecialization) {
+      toast.error("Please select all educational details.");
+      return;
+    }
+
+    const data = {
+      degree: selectedDegree,
+      pg: selectedPGCourse,
+      specialization: selectedSpecialization,
+      user: id,
+    };
+
+    try {
+      const record = await pb.collection("user_credentials").create(data);
+      console.log("Educational details posted successfully:", record);
+      toast.success("Educational details added successfully!");
+
+      setSelectedDegree("");
+      setSelectedPGCourse("");
+      setSelectedSpecialization("");
+      setPGCourses([]);
+      setSpecializationCourses([]);
+
+      // Trigger a refetch of the qualifications
+      setQualificationsRefetchTrigger((prev) => prev + 1);
+      setIsEducationUploaded(true);
+      setIsUploadedQualification(true);
+    } catch (error: any) {
+      console.error("Error posting educational details:", error);
+      toast.error(error.message || "An error occurred while adding details.");
+    }
+  };
+
+  const validateProfilePhoto = () => {
+    if (profilePhoto) {
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(profilePhoto.type)) {
+        toast.error(
+          "Only PNG and JPG formats are allowed for the profile photo."
+        );
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const uploadProfilePhoto = async () => {
+    if (!profilePhoto) {
+      console.error("No profile photo selected for upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("profile", profilePhoto);
+
+    return toast
+      .promise(pb.collection("users").update(id, formData), {
+        loading: "Uploading profile photo...",
+        success: "Profile photo uploaded successfully 😎",
+        error: "Profile photo upload failed 😞",
+      })
+      .then(() => setIsPhotoUploaded(true));
+  };
+
+  const uploadRegistrationCertificate = async () => {
+    if (!regCert) {
+      console.error("No registration certificate selected for upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("registration_certificate", regCert);
+
+    return toast
+      .promise(pb.collection("users").update(id, formData), {
+        loading: "Uploading registration certificate...",
+        success: "Registration certificate uploaded successfully 😎",
+        error: "Registration certificate upload failed 😞",
+      })
+      .then(() => setIsRegCertUploaded(true));
+  };
+
+  const uploadDegreeCertificate = async () => {
+    if (!degreeCert) {
+      console.error("No degree certificate selected for upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("degree_certificate", degreeCert);
+
+    return toast
+      .promise(pb.collection("users").update(id, formData), {
+        loading: "Uploading degree certificate...",
+        success: "Degree certificate uploaded successfully 😎",
+        error: "Degree certificate upload failed 😞",
+      })
+      .then(() => setIsDegreeCertUploaded(true));
+  };
+  const validateFields = () => {
+    const errors = {
+      dob: !dob,
+      mobile: !mobile || !isContactVerified,
+      selectedState: !selectedState,
+      selectedCity: !selectedCity,
+      address: !address,
+      // bio: !bio,
+      profilePhoto: !isPhotoUploaded,
+      degreeCert: !isDegreeCertUploaded,
+      regCert: !isRegCertUploaded,
+      registrationNumber: !registrationNumber,
+      experience: !experience,
+      experienceYears: !experienceYears,
+      selectedCouncil: !selectedCouncil,
+    };
+    setFieldErrors(errors);
+    return !Object.values(errors).some(Boolean);
+  };
+
+  const updateProfile = async () => {
+    // Validate contact number and profile photo
+    if (!validateFields()) {
+      toast.error(
+        "Please fill all required fields and verify your contact number."
+      );
+      return;
+    }
+    if (!isUploadedQualification) {
+      toast.error("Please save your qualification details");
+      return;
+    }
+    if (!validateProfilePhoto()) {
+      return;
+    }
+
+    // Prepare the profile data
+    const profileData = {
+      dob,
+      mobile,
+      state: selectedState,
+      city: selectedCity,
+      address,
+      registrationNumber,
+      selectedCouncil,
+      experience,
+      selectedDegrees: selectedDegree,
+      selectedSpecializations: selectedPGCourse,
+      // bio,
+      experienceYears,
+      isFirstTimeCompleted: true,
+    };
+
+    // Show loading toast while the profile is being updated
+    try {
+      await toast.promise(pb.collection("users").update(id, profileData), {
+        loading: "Updating profile...",
+        success: () => {
+          // Call the function to mark the document as uploaded on success
+          setIsDocumentUploaded();
+          props.handleShowEditProfile(true);
+          props.handleTabClick("profile");
+
+          // Reset all fields upon successful profile update
+          resetFields();
+
+          return "Profile updated and sent for verification. Once verified, you can post jobs. ✨";
+        },
+        error: "Profile update failed 😞",
+      });
+
+      // Show final success toast message
+
+      // router.refresh();
+      // window.location.href = "/doctor-dashboard";
+    } catch (error) {
+      console.error(
+        "Error while updating profile or marking document as uploaded:",
+        error
+      );
+      toast.error("An error occurred during the update process.");
+    }
+  };
+  const sendForVerification = async () => {
+    try {
+      let headersList = {
+        Authorization: `Bearer ${authdata?.token}`,
+      };
+
+      let response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/api/collections/users/re-verify-documents`,
+        {
+          method: "GET",
+          headers: headersList,
+        }
+      );
+
+      let data = await response.text();
+      if (response.status === 200) {
+        toast.success("Profile has been sent for verification");
+        props.handleTabClick("profile");
+      }
+      console.log(data);
+    } catch (error) {}
+  };
+  const updateProfileNew = async () => {
+    const criticalFieldsPresent =
+      name ||
+      isEducationUploaded ||
+      isRegCertUploaded ||
+      isDegreeCertUploaded ||
+      registrationNumber ||
+      selectedCouncil;
+
+    console.log("Critical Fields Present:", criticalFieldsPresent);
+
+    const profileData = {
+      name: name && !name.startsWith("Dr.") ? `Dr. ${name}` : name,
+      dob,
+      mobile,
+      state: selectedState,
+      city: selectedCity,
+      selectedCouncil,
+      registrationNumber,
+      address,
+      experience,
+      // bio,
+      experienceYears,
+    };
+
+    console.log("Profile Data:", profileData);
+
+    // Filter out null or undefined fields
+    const availableFields = Object.entries(profileData).filter(
+      ([key, value]) => value !== null && value !== undefined
+    );
+
+    // Convert the filtered fields back to an object
+    const filteredProfileData = Object.fromEntries(availableFields);
+
+    if (Object.keys(filteredProfileData).length === 0) {
+      if (!criticalFieldsPresent)
+        toast.error("Please fill in at least one field to update.");
+    } else {
+      try {
+        await toast.promise(
+          pb.collection("users").update(id, filteredProfileData),
+          {
+            loading: "Updating profile...",
+            success: () => {
+              setIsDocumentUploaded();
+
+              if (!criticalFieldsPresent) {
+                props.handleShowEditProfile(true);
+                props.handleTabClick("profile");
+
+                resetFields();
+              }
+
+              return "Profile updated successfully";
+            },
+            error: "Profile update failed",
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Error while updating profile or marking document as uploaded:",
+          error
+        );
+        toast.error("An error occurred during the update process.");
+      }
+    }
+
+    if (criticalFieldsPresent) {
+      await sendForVerification();
+    }
+  };
+
+  useEffect(() => {
+    try {
+      uploadProfilePhoto();
+    } catch (error) {
+      console.log("Photo uploading failed");
+    }
+  }, [profilePhoto]);
+
+  // Function to reset all fields
+  const resetFields = () => {
+    setDob(null);
+    setMobile(null);
+    setSelectedState(null);
+    setSelectedCity(null);
+    setAddress(null);
+    setRegistrationNumber(null);
+    setSelectedCouncil(null);
+    setExperience(null);
+    setSelectedDegree("");
+    setSelectedPGCourse("");
+    setBio(null);
+    setExperienceYears(null);
+    setProfilePhoto(null);
+    setRegCert(null);
+    setDegreeCert(null);
+    setIsPhotoUploaded(false);
+    setIsRegCertUploaded(false);
+    setIsDegreeCertUploaded(false);
+  };
+
+  const handleStateChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newState = event.target.value;
+    setSelectedState(newState);
+    setSelectedCity("");
+  };
+
+  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCity(event.target.value);
+  };
+  const handleEmailChange = async () => {
+    if (!email || email.length === 0) {
+      return;
+    }
+    const confirmed = window.confirm(
+      "Are you sure you want to update your email address? You will be logged out and will need to log in again after verifying your new email. Please check your inbox to complete the verification process."
+    );
+    if (!confirmed) return;
+    try {
+      const response = await pb.collection("users").requestEmailChange(email);
+      console.log("Email change response ", response);
+      toast.success("Email change request sent successfully!");
+      pb.authStore.clear();
+      deleteCookie("authToken");
+      deleteCookie("authData");
+      dispatch(resetProfile());
+      toast.success("You have been logged out successfully!");
+      window.location.href = "/";
+    } catch (error) {
+      console.log("Email change error", error);
+      toast.error("Changing Email failed. Try again");
+    }
+  };
+  const handleSendOtp = async () => {
+    let headersList = {
+      Accept: "/",
+      Authorization: `Bearer ${authdata?.token}`,
+      "Content-Type": "application/json",
+    };
+    let bodyContent = JSON.stringify({
+      mobile: mobile,
+    });
+
+    try {
+      let response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/api/collections/users/send-otp`,
+        {
+          method: "POST",
+          headers: headersList,
+          body: bodyContent,
+        }
+      );
+
+      const data = await response.json(); // Extract JSON from the response
+
+      if (response.ok) {
+        setOtpSent(true);
+        setIsOtpVisible(true);
+        toast.success(data.message || "OTP sent successfully!"); // Show message from the response
+      } else {
+        toast.error(data.message || "Failed to send OTP. Please try again.");
+        setMobile(null);
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      toast.error("An error occurred while sending OTP.");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    let headersList = {
+      Accept: "/",
+      Authorization: `Bearer ${authdata?.token}`,
+      "Content-Type": "application/json",
+    };
+
+    let bodyContent = JSON.stringify({
+      otp: otp,
+    });
+
+    try {
+      let response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/api/collections/users/verify-otp`,
+        {
+          method: "POST",
+          body: bodyContent,
+          headers: headersList,
+        }
+      );
+
+      const data = await response.json(); // Extract JSON from the response
+
+      if (response.ok) {
+        toast.success(data.message || "OTP verified successfully!"); // Show message from the response
+        setIsOtpVisible(false);
+        setIsContactVerified(true);
+      } else {
+        toast.error(
+          data.message || "OTP verification failed. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast.error("An error occurred while verifying OTP.");
+    }
+  };
+
+  const isFormValid = () => {
+    const allFieldsFilled =
+      dob &&
+      selectedState &&
+      selectedCity &&
+      address &&
+      registrationNumber &&
+      selectedCouncil &&
+      experience &&
+      bio &&
+      experienceYears;
+
+    // Check if profile photo and documents are uploaded
+    const allDocumentsUploaded =
+      isPhotoUploaded && isRegCertUploaded && isDegreeCertUploaded;
+
+    return allFieldsFilled && allDocumentsUploaded;
+  };
+  const allFieldsSelected = selectedDegree && selectedPGCourse;
+  const renderInput = (
+    name: keyof typeof fieldErrors,
+    value: string,
+    onChange: (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => void,
+    placeholder: string,
+    type: string = "text"
+  ) => (
+    <div>
+      <input
+        required
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          fieldErrors[name] ? "border-red-500" : ""
+        }`}
+        placeholder={placeholder}
+      />
+      {fieldErrors[name] && (
+        <p className="text-red-500 mt-1">This field is required</p>
+      )}
+    </div>
+  );
+  useEffect(() => {
+    if (secondTimeAccUpdate) {
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? "animate-enter" : "animate-leave"
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <img
+                    className="h-10 w-10 rounded-full"
+                    src="/logo.png"
+                    alt="Medishifts Logo"
+                  />
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    ⚠ Profile Update Reminder
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Kindly edit or add the required fields marked with an
+                    asterisk (*) and any other necessary details. All fields do
+                    not need to be filled.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    }
+  }, [secondTimeAccUpdate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen justify-center items-center ">
+        <Spinner />
+      </div>
+    ); // Show loader until data is fetched
+  }
   return (
     <>
-      <div className="relative bg-gradient-to-r from-purple-600 to-blue-600 h-screen text-white overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            alt="Background Image"
-            className="w-full h-full"
-            layout="fill"
-            objectFit="cover"
-            objectPosition="center"
-            src="https://images.unsplash.com/photo-1618498082410-b4aa22193b38?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          />
-          <div className="absolute inset-0 bg-black opacity-50" />
-        </div>
+      {secondTimeAccUpdate ? (
+        // Second time after first time Profile Update :=>
+        <>
+          <div className="flex flex-col text-black dark:text-white w-full max-w-8xl mx-auto p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 shadow-lg rounded-lg">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-4 sm:mb-6 dark:text-white text-blue-800 text-center">
+              Edit Professional profile
+            </h1>
 
-        <div className="relative z-10 flex flex-col justify-center items-center h-full text-center">
-          <h1
-            className="text-5xl font-bold leading-tight mb-4"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            Discover top medical career opportunities.
-          </h1>
-          <p
-            className="text-lg text-gray-300 mb-8"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            tailored to your expertise and aspirations, regardless of your
-            experience level
-          </p>
-          <button
-            className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 py-2 px-6 rounded-full text-lg font-semibold transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg animate-bounce"
-            onClick={() =>
-              document
-                .getElementById("about-us")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            Get Started
-          </button>
-        </div>
-      </div>
-      <br />
-      <br />
-      <section
-        id="about-us"
-        className="bg-gradient-to-r from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12"
-        data-aos="fade-up"
-      >
-        <div className="container mx-auto px-6 md:px-12 lg:px-24">
-          <div className="flex flex-col lg:flex-row lg:items-center">
-            <div className="lg:w-1/2 lg:pr-12 mb-8 lg:mb-0">
-              <h2
-                className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6"
-                data-aos="fade-up"
-              >
-                About Us
-              </h2>
-              <p
-                className="text-lg text-gray-700 dark:text-gray-300 mb-6"
-                data-aos="fade-up"
-                data-aos-delay="100"
-              >
-                Welcome to our company! We are committed to providing
-                exceptional services and solutions to our clients. Our team of
-                experts works diligently to ensure the highest standards of
-                quality and customer satisfaction.
-              </p>
-              <p
-                className="text-lg text-gray-700 dark:text-gray-300 mb-6"
-                data-aos="fade-up"
-                data-aos-delay="200"
-              >
-                With years of experience in the industry, we have built a
-                reputation for delivering innovative and effective solutions
-                that meet the unique needs of our clients. Our mission is to
-                help businesses thrive by providing them with the tools and
-                support they need to succeed.
-              </p>
-              <p
-                className="text-lg text-gray-700 dark:text-gray-300 mb-6"
-                data-aos="fade-up"
-                data-aos-delay="300"
-              >
-                Join us on our journey to excellence and let us help you achieve
-                your business goals. We look forward to working with you!
-              </p>
-              <blockquote
-                className="text-xl italic font-semibold text-gray-900 dark:text-gray-100"
-                data-aos="fade-up"
-                data-aos-delay="400"
-              >
-                "Striving for excellence, one client at a time."
-              </blockquote>
-            </div>
-            <div className="lg:w-1/2">
-              <img
-                src="https://plus.unsplash.com/premium_photo-1661740474595-4209c2a1d3b8?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt="About Us"
-                className="w-full h-auto rounded-lg shadow-lg"
-                data-aos="fade-up"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+            <div className="grid grid-cols-1  gap-4 sm:gap-6">
+              {/* profile Photo */}
+              <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-gray-300 bg-gray-100">
+                  {profilePhoto ? (
+                    <img
+                      src={URL.createObjectURL(profilePhoto)}
+                      alt="profile Preview"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-gray-500 text-xs sm:text-sm dark:text-white">
+                      No Photo
+                    </span>
+                  )}
+                </div>
+                <input
+                  required
+                  accept="image/png, image/jpeg"
+                  type="file"
+                  onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="profile-photo-upload"
+                />
+                <label
+                  htmlFor="profile-photo-upload"
+                  className=" cursor-pointer px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {isPhotoUploaded
+                    ? "Update Profile Photo"
+                    : "Select Profile Photo"}
+                </label>
 
-      {/* <section
-        className="bg-gray-50 dark:bg-[#000000] py-12 sm:py-16 lg:py-20 xl:py-24"
-        data-aos="fade-up"
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-sm font-bold uppercase tracking-widest text-gray-700 dark:text-gray-400">
-              How It Works
-            </p>
-            <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl lg:text-5xl">
-              Launch your blog in 4 easy steps
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg font-normal text-gray-700 dark:text-gray-300 lg:text-xl lg:leading-8">
-              Create your own blog with us and launch it with just 4 easy steps
-            </p>
-          </div>
-          <ul className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-10 sm:mt-16 lg:mt-20 lg:max-w-5xl lg:grid-cols-4">
-            {steps.map((step, index) => (
-              <li
-                key={index}
-                className="flex-start group relative flex lg:flex-col"
-                data-aos="fade-up"
-                data-aos-delay={index * 100}
-              >
-                {index < steps.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-[18px] top-14 h-[calc(100%_-_32px)] w-px bg-gray-300 dark:bg-gray-600 lg:right-0 lg:left-auto lg:top-[18px] lg:h-px lg:w-[calc(100%_-_72px)]"
-                  />
+                {/* <button
+                  onClick={uploadProfilePhoto}
+                  className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isPhotoUploaded}
+                >
+                  {isPhotoUploaded
+                    ? "profile Photo Uploaded"
+                    : "Upload profile Photo"}
+                </button> */}
+              </div>
+              <div className="col-span-1 sm:col-span-2">
+                <label className="block text-base sm:text-lg dark:text-white font-medium text-gray-700 mb-1 sm:mb-2">
+                  Name
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full text-gray-700 p-3 dark:text-white sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                  placeholder="Enter Name"
+                />
+              </div>
+
+              {/* Registration Certificate */}
+
+              <div className="col-span-1 lg:col-span-2 space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      Date of Birth
+                    </label>
+                    <input
+                      required
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className="w-full dark:text-white p-3 sm:p-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
+                      Change Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter Email Address"
+                    />
+                    <button
+                      onClick={handleEmailChange}
+                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors dark:text-white"
+                    >
+                      Change Email
+                    </button>
+                  </div>
+
+                  {/* Contact Number */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
+                      Contact Number
+                    </label>
+                    <span>Mobile number must be associated with Whatsapp</span>
+                    <input
+                      required
+                      type="text"
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value)}
+                      className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter your whatsapp number"
+                    />
+
+                    <button
+                      onClick={handleSendOtp}
+                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors dark:text-white"
+                    >
+                      Change Contact Number
+                    </button>
+                    {otpSent && (
+                      <p className="text-green-500 mt-2">
+                        OTP sent to the corresponding number!
+                      </p>
+                    )}
+                    {isOtpVisible && (
+                      <div className="mt-4">
+                        <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
+                          Enter OTP
+                        </label>
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Enter the OTP"
+                        />
+                        <button
+                          onClick={handleVerifyOtp}
+                          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:text-white"
+                        >
+                          Verify OTP
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      State
+                    </label>
+                    <select
+                      required
+                      value={selectedState}
+                      onChange={handleStateChange}
+                      className="w-full dark:text-white p-3 sm:p-4 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    >
+                      <option value="">Select a state</option>
+                      {Object.keys(typedStateCityData).map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      City
+                    </label>
+                    <select
+                      required
+                      value={selectedCity}
+                      onChange={handleCityChange}
+                      className="w-full p-3 sm:p-4 dark:text-white text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      disabled={!selectedState}
+                    >
+                      <option value="">Select a city</option>
+                      {selectedState &&
+                        typedStateCityData[selectedState].map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Address */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-base sm:text-lg dark:text-white font-medium text-gray-700 mb-1 sm:mb-2">
+                      Address
+                    </label>
+                    <textarea
+                      required
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full text-gray-700 p-3 dark:text-white sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Enter address"
+                      rows={4}
+                    />
+                  </div>
+
+                  {/* Experience Years */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 dark:text-white mb-1 sm:mb-2">
+                      Experience years
+                    </label>
+                    <input
+                      required
+                      type="number"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      className="w-full dark:text-white text-gray-700 p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Enter experience in years"
+                    />
+                  </div>
+
+                  {/* Experience */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 dark:text-white mb-1 sm:mb-2">
+                      Describe your experience
+                    </label>
+                    <textarea
+                      required
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      className="w-full p-3 dark:text-white text-gray-700 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Describe your experience"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
+                {/* Degree Dropdown */}
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <label
+                      htmlFor="degree"
+                      className="block text-gray-700 dark:text-white font-medium mb-2"
+                    >
+                      Select Degree <span className="text-red-500 ">*</span>
+                    </label>
+                    <select
+                      id="degree"
+                      value={selectedDegree}
+                      onChange={handleDegreeChange}
+                      className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                    >
+                      <option value="">Select a Degree</option>
+                      {Object.keys(educationalQualifications.degrees).map(
+                        (degree) => (
+                          <option key={degree} value={degree}>
+                            {degree}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Postgraduate Course Dropdown */}
+                  {pgCourses.length > 0 && (
+                    <div className="flex-1 min-w-[200px]">
+                      <label
+                        htmlFor="pg-course"
+                        className="block text-gray-700 dark:text-white font-medium mb-2"
+                      >
+                        Select Postgraduate Course
+                      </label>
+                      <select
+                        id="pg-course"
+                        value={selectedPGCourse}
+                        onChange={handlePGCourseChange}
+                        className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                      >
+                        <option value="">Select a PG Course</option>
+                        {pgCourses.map((pgCourse) => (
+                          <option key={pgCourse} value={pgCourse}>
+                            {pgCourse}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Specialization Course Dropdown */}
+                  {specializationCourses.length > 0 && (
+                    <div className="flex-1 min-w-[200px]">
+                      <label
+                        htmlFor="specialization-course"
+                        className="block text-gray-700 dark:text-white font-medium mb-2"
+                      >
+                        Select Specialization
+                      </label>
+                      <select
+                        id="specialization-course"
+                        value={selectedSpecialization}
+                        onChange={handleSpecializationChange}
+                        className="w-full text-black p-2 border dark:text-white border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                      >
+                        <option value="">Select a Specialization</option>
+                        {specializationCourses.map((specialization) => (
+                          <option key={specialization} value={specialization}>
+                            {specialization}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Add Button */}
+                  {allFieldsSelected && (
+                    <div className="flex-1 min-w-[200px] flex items-end">
+                      <button
+                        onClick={handleEducationalDetailsSecond}
+                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      >
+                        Save Qualification
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <EducationalQualificationsTable
+                  userId={id}
+                  triggerRefetch={qualificationsRefetchTrigger}
+                  onDelete={handleDelete}
+                />
+                {selectedDegforCouncil && relevantCouncilOptions.length > 0 && (
+                  <div className="flex-1 min-w-[200px]">
+                    <label
+                      htmlFor="council"
+                      className="block text-gray-700 dark:text-white font-medium mb-2"
+                    >
+                      Select Council
+                    </label>
+                    <select
+                      id="council"
+                      value={selectedCouncil}
+                      onChange={handleCouncilChange}
+                      className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300 "
+                    >
+                      <option value="">Select a Council</option>
+                      {relevantCouncilOptions.map((option: any) => (
+                        <option key={option.key} value={option.key}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
-                <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 transition-all duration-200 group-hover:border-gray-900 dark:group-hover:border-gray-300 group-hover:bg-gray-900 dark:group-hover:bg-gray-800 hover:scale-105 hover:shadow-lg">
-                  {step.icon}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Registration Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 "
+                    placeholder="Enter Reg Number Without Council"
+                    required
+                  />
                 </div>
-                <div className="ml-6 lg:ml-0 lg:mt-10">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 before:mb-2 before:block before:font-mono before:text-sm before:text-gray-500 dark:before:text-gray-400">
-                    {step.title}
-                  </h3>
-                  <h4 className="mt-2 text-base text-gray-700 dark:text-gray-300">
-                    {step.description}
-                  </h4>
+
+                <p className="flex justify-center text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
+                  If you have multiple documents, please merge them into a
+                  single PDF file before uploading.
+                </p>
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Registration Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf, .png, .jpeg, .jpg"
+                    onChange={(e) => setRegCert(e.target.files?.[0] || null)}
+                    className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadRegistrationCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isRegCertUploaded}
+                  >
+                    {isRegCertUploaded
+                      ? "Registration Certificate Uploaded"
+                      : "Upload Registration Certificate"}
+                  </button>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
 
-      <Sponsors />
-      <br />
+                {/* Degree Certificate */}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Passing / Degree Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf, .png, .jpeg, .jpg"
+                    onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
+                    className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadDegreeCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isDegreeCertUploaded}
+                  >
+                    {isDegreeCertUploaded
+                      ? "Degree Certificate Uploaded"
+                      : "Upload Passing / Degree Certificate"}
+                  </button>
+                </div>
+              </div>
+            </div>
 
-      <Achievements />
-      <br />
-      <TestimonialSection />
-      <br />
-      <section id="pricing">
-        <PricingSection />
-      </section> */}
+            <p className="lg:flex md:flex-auto justify-center text-sm sm:text-base text-gray-600 font-bold dark:text-gray-400 mt-4">
+              If you change any of the fields marked with asterisk (
+              <span className="text-red-500">*</span>), Admin will need to
+              verify your profile again before you can apply for new jobs.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={updateProfileNew}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col text-black dark:text-white w-full max-w-8xl mx-auto p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 shadow-lg rounded-lg">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-4 sm:mb-6 dark:text-white text-blue-800 text-center">
+              Edit Professional profile
+            </h1>
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6">
+              {/* profile Photo */}
+              <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-gray-300 bg-gray-100">
+                  {profilePhoto ? (
+                    <img
+                      src={URL.createObjectURL(profilePhoto)}
+                      alt="profile Preview"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-gray-500 text-xs sm:text-sm dark:text-white">
+                      No Photo
+                    </span>
+                  )}
+                </div>
+                <input
+                  required
+                  accept="image/png, image/jpeg"
+                  type="file"
+                  onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="profile-photo-upload"
+                />
+                <label
+                  htmlFor="profile-photo-upload"
+                  className=" cursor-pointer px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {isPhotoUploaded
+                    ? "Upload Profile Photo"
+                    : "Select profile Photo"}
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                {/* <button
+                  onClick={uploadProfilePhoto}
+                  className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={isPhotoUploaded}
+                >
+                  {isPhotoUploaded
+                    ? "profile Photo Uploaded"
+                    : "Upload profile Photo"}
+                </button> */}
+                {fieldErrors.profilePhoto && (
+                  <p className="text-red-500 mt-1">Profile photo is required</p>
+                )}
+              </div>
 
-      <br />
-      <br />
-      <Footer />
+              <div className="col-span-1 lg:col-span-2 space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      Date of Birth
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      required
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        fieldErrors.dob ? "border-red-500" : ""
+                      }`}
+                    />
+                    {fieldErrors.dob && (
+                      <p className="text-red-500 mt-1">
+                        Date of birth is required
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div className="col-span-1 sm:col-span-2">
+                    {renderInput(
+                      "mobile",
+                      mobile,
+                      (e) => setMobile(e.target.value),
+                      "Enter your whatsapp number"
+                    )}
+                    <button
+                      onClick={handleSendOtp}
+                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors dark:text-white"
+                    >
+                      Verify Contact Number
+                    </button>
+                    {fieldErrors.mobile && (
+                      <p className="text-red-500 mt-1">
+                        Contact number must be verified
+                      </p>
+                    )}
+                    {otpSent && (
+                      <p className="text-green-500 mt-2">
+                        OTP sent to the corresponding number!
+                      </p>
+                    )}
+                    {isOtpVisible && (
+                      <div className="mt-4">
+                        <label className="block text-lg font-medium dark:text-white text-gray-700 mb-2">
+                          Enter OTP
+                          <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          className="w-full dark:text-white p-4 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Enter the OTP"
+                        />
+                        <button
+                          onClick={handleVerifyOtp}
+                          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:text-white"
+                        >
+                          Verify OTP
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {/* Address */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-base sm:text-lg dark:text-white font-medium text-gray-700 mb-1 sm:mb-2">
+                      Address
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <textarea
+                      required
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        fieldErrors.address ? "border-red-500" : ""
+                      }`}
+                      // className="w-full text-gray-700 p-3 dark:text-white sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Enter address"
+                      rows={4}
+                    />
+                    {fieldErrors.address && (
+                      <p className="text-red-500 mt-1">Address is required</p>
+                    )}
+                  </div>
+                  {/* State */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      State
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      required
+                      value={selectedState}
+                      onChange={handleStateChange}
+                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        fieldErrors.selectedState ? "border-red-500" : ""
+                      }`}
+                    >
+                      <option value="">Select a state</option>
+                      {Object.keys(typedStateCityData).map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                    {fieldErrors.selectedState && (
+                      <p className="text-red-500 mt-1">State is required</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                      City
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      required
+                      value={selectedCity}
+                      onChange={handleCityChange}
+                      className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        fieldErrors.selectedCity ? "border-red-500" : ""
+                      }`}
+                      disabled={!selectedState}
+                    >
+                      <option value="">Select a city</option>
+                      {selectedState &&
+                        typedStateCityData[selectedState].map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                    </select>
+                    {fieldErrors.selectedCity && (
+                      <p className="text-red-500 mt-1">City is required</p>
+                    )}
+                  </div>
+
+                  {/* Experience Years */}
+                  <div>
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 dark:text-white mb-1 sm:mb-2">
+                      Experience years
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      required
+                      type="number"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      className={`w-full dark:text-white text-gray-700 p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
+                        fieldErrors.experienceYears ? "border-red-500" : ""
+                      }`}
+                      // className="w-full dark:text-white text-gray-700 p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Enter experience in years"
+                    />
+                  </div>
+
+                  {/* Experience */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-base sm:text-lg font-medium text-gray-700 dark:text-white mb-1 sm:mb-2">
+                      Describe your experience
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <textarea
+                      required
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      className={`w-full p-3 dark:text-white text-gray-700 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
+                        fieldErrors.experience ? "border-red-500" : ""
+                      }`}
+                      // className="w-full p-3 dark:text-white text-gray-700 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                      placeholder="Describe your experience"
+                      rows={4}
+                    />
+                    {fieldErrors.experience && (
+                      <p className="text-red-500 mt-1">
+                        Experience is required
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Degree Dropdown */}
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <label
+                      htmlFor="degree"
+                      className="block text-gray-700 dark:text-white font-medium mb-2"
+                    >
+                      Select Degree<span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      id="degree"
+                      value={selectedDegree}
+                      onChange={handleDegreeChange}
+                      className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                    >
+                      <option value="">Select a Degree</option>
+                      {Object.keys(educationalQualifications.degrees).map(
+                        (degree) => (
+                          <option key={degree} value={degree}>
+                            {degree}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Postgraduate Course Dropdown */}
+                  {pgCourses.length > 0 && (
+                    <div className="flex-1 min-w-[200px]">
+                      <label
+                        htmlFor="pg-course"
+                        className="block text-gray-700 dark:text-white font-medium mb-2"
+                      >
+                        Select Postgraduate Course
+                      </label>
+                      <select
+                        id="pg-course"
+                        value={selectedPGCourse}
+                        onChange={handlePGCourseChange}
+                        className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                      >
+                        <option value="">Select a PG Course</option>
+                        {pgCourses.map((pgCourse) => (
+                          <option key={pgCourse} value={pgCourse}>
+                            {pgCourse}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Specialization Course Dropdown */}
+                  {specializationCourses.length > 0 && (
+                    <div className="flex-1 min-w-[200px]">
+                      <label
+                        htmlFor="specialization-course"
+                        className="block text-gray-700 dark:text-white font-medium mb-2"
+                      >
+                        Select Specialization
+                      </label>
+                      <select
+                        id="specialization-course"
+                        value={selectedSpecialization}
+                        onChange={handleSpecializationChange}
+                        className="w-full text-black p-2 border dark:text-white border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                      >
+                        <option value="">Select a Specialization</option>
+                        {specializationCourses.map((specialization) => (
+                          <option key={specialization} value={specialization}>
+                            {specialization}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Add Button */}
+                  {allFieldsSelected && (
+                    <div className="flex-1 min-w-[200px] flex items-end">
+                      <button
+                        onClick={handleEducationalDetailsFirst}
+                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      >
+                        Save Qualification
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <EducationalQualificationsTable
+                  userId={id}
+                  triggerRefetch={qualificationsRefetchTrigger}
+                  onDelete={handleDelete}
+                />
+                {/* Council Dropdown */}
+                {selectedDegforCouncil && relevantCouncilOptions.length > 0 && (
+                  <div className="flex-1 min-w-[200px]">
+                    <label
+                      htmlFor="council"
+                      className="block text-gray-700 dark:text-white font-medium mb-2"
+                    >
+                      Select Council
+                    </label>
+                    <select
+                      id="council"
+                      value={selectedCouncil}
+                      onChange={handleCouncilChange}
+                      className={`w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300 ${
+                        fieldErrors.selectedCouncil ? "border-red-500" : ""
+                      }`}
+
+                      // className="w-full dark:text-white text-black p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                    >
+                      <option value="">Select a Council</option>
+                      {relevantCouncilOptions.map((option: any) => (
+                        <option key={option.key} value={option.key}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </select>
+                    {fieldErrors.selectedCouncil && (
+                      <p className="text-red-500 mt-1">Council is required</p>
+                    )}
+                  </div>
+                )}
+                {/* Registration Number */}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Registration Number
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationNumber}
+                    onChange={(e) => setRegistrationNumber(e.target.value)}
+                    className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      fieldErrors.registrationNumber ? "border-red-500" : ""
+                    }`}
+                    // className="w-full text-gray-700 dark:text-white p-3 sm:p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    placeholder="Enter Reg Number Without Council"
+                    required
+                  />
+                  {fieldErrors.registrationNumber && (
+                    <p className="text-red-500 mt-1">
+                      Registration number is required
+                    </p>
+                  )}
+                </div>
+                <p className="flex justify-center text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
+                  If you have multiple documents, please merge them into a
+                  single PDF file before uploading.
+                </p>
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Registration Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf, .png, .jpeg, .jpg"
+                    onChange={(e) => setRegCert(e.target.files?.[0] || null)}
+                    className="w-full p-2 dark:text-white dark:bg-gray-800 text-black sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadRegistrationCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isRegCertUploaded}
+                  >
+                    {isRegCertUploaded
+                      ? "Registration Certificate Uploaded"
+                      : "Upload Registration Certificate"}
+                  </button>
+                  {fieldErrors.regCert && (
+                    <p className="text-red-500 mt-1">
+                      Registration Certificate is required
+                    </p>
+                  )}
+                </div>
+
+                {/* Degree Certificate */}
+                <div>
+                  <label className="block text-base sm:text-lg font-medium dark:text-white text-gray-700 mb-1 sm:mb-2">
+                    Upload Passing / Degree Certificate
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    required
+                    type="file"
+                    accept=".pdf, .png, .jpeg, .jpg"
+                    onChange={(e) => setDegreeCert(e.target.files?.[0] || null)}
+                    className="w-full text-black dark:text-white dark:bg-gray-800 p-2 sm:p-3 border rounded-lg bg-gray-100 text-sm sm:text-base"
+                  />
+                  <button
+                    onClick={uploadDegreeCertificate}
+                    className="mt-2 px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isDegreeCertUploaded}
+                  >
+                    {isDegreeCertUploaded
+                      ? "Degree Certificate Uploaded"
+                      : "Upload Passing / Degree Certificate"}
+                  </button>
+                  {fieldErrors.degreeCert && (
+                    <p className="text-red-500 mt-1">
+                      Passing / Degree Certificate is required
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={updateProfile}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+              >
+                Update Profile and Send for Verification
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
