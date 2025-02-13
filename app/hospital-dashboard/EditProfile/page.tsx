@@ -2,7 +2,7 @@
 import pb from "@/utils/pocketbase-connect";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { stateCityData } from "../../stateCities";
+import { stateCityData } from "@/app/stateCities";
 import { deleteCookie, getCookie } from "cookies-next";
 import { resetProfile } from "@/app/redux/features/profile-slice";
 import { useDispatch } from "react-redux";
