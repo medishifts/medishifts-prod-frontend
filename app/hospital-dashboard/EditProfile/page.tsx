@@ -752,7 +752,7 @@ export default function EditProfileComponent(props: any) {
               </label>
               <input
                 type="file"
-                accept="application/pdf"
+                accept=".pdf, .png, .jpeg, .jpg"
                 onChange={(e) => setDocuments(e.target.files)}
                 className="w-full text-black dark:text-white p-3 border rounded-lg bg-gray-100 dark:bg-gray-800"
               />
@@ -1018,7 +1018,7 @@ export default function EditProfileComponent(props: any) {
               </label>
               <input
                 type="file"
-                accept="application/pdf"
+                accept=".pdf, .png, .jpeg, .jpg"
                 onChange={(e) => setDocuments(e.target.files)}
                 className="w-full text-black dark:text-white p-3 border rounded-lg bg-gray-100 dark:bg-gray-800"
               />
